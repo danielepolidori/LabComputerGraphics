@@ -3,11 +3,14 @@
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 
+// Sistema particellare
+#include <vector>
+
 static unsigned int programId;
 #define PI 3.14159265358979323846
 
-unsigned int VAO_CIELO, VAO_SOLE;
-unsigned int VBO_C, VBO_S, MatProj, MatModel;
+unsigned int VAO_CIELO, VAO_SOLE, VAO_SISTEMAPARTICELLARE;
+unsigned int VBO_C, VBO_S, VBO_SP, MatProj, MatModel;
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -32,15 +35,40 @@ typedef struct { float x, y, z, r, g, b, a; } Point;
 int vertices_Cielo = 6;
 Point* Cielo = new Point[vertices_Cielo];
 
+
 // Sole
+
 int nTriangles_sole = 30;
 int vertices_sole = 3 * 2 * nTriangles_sole;
 Point* Sole = new Point[vertices_sole];
 
-
 // Posizione del sole
 int posSole_x = 0;
 int posSole_y = 0;
+
+
+// Sistema particellare
+
+typedef struct {
+	float r;
+	float g;
+	float b;
+} Color;
+
+typedef struct {
+	float x;
+	float y;
+	float alpha;
+	float xFactor;
+	float yFactor;
+	float drag;
+	Color color;
+} PARTICLE;
+
+vector <PARTICLE> particles;
+
+int nPoint = 5000;
+Point* Punti = new Point[nPoint];
 
 
 
@@ -57,10 +85,71 @@ void keyboardPressedEvent(unsigned char key, int x, int y) {
 	}
 }
 
-void mouseMovedEvent(int x, int y) {
+// Sistema particellare
+Color computeRainbow() {
 
-	posSole_x = x;
-	posSole_y = y;
+	static float rgb[3] = { 1.0, 0.0, 0.0 };
+	static int fase = 0, counter = 0;
+	const float step = 0.1;
+	Color paint;
+
+	 switch (fase) {
+		case 0: rgb[1] += step;
+		break;
+		case 1: rgb[0] -= step;
+		break;
+		case 2: rgb[2] += step;
+		break;
+		case 3: rgb[1] -= step;
+		break;
+		case 4: rgb[0] += step;
+		break;
+		case 5: rgb[2] -= step;
+		break;
+		default:
+		break;
+	}
+	//fprintf(stdout, "Rosso e verde e blu: %f,%f,%f, counter= %i\n", rgb[0], rgb[1], rgb[2], counter);
+
+	 counter++;
+	if (counter > 1.0 / step) {
+		counter = 0;
+		fase < 5 ? fase++ : fase = 0;
+	}
+
+	 paint.r = rgb[0];
+	paint.g = rgb[1];
+	paint.b = rgb[2];
+	return paint;
+}
+
+void mouseMotionEvent(int x, int y) {
+
+	int xPos_ = x;
+	int yPos_ = height - y;   // L'asse y e' invertito (posSole_y=0 quando y=height)
+
+
+	// Sole
+	posSole_x = xPos_;
+	posSole_y = yPos_;
+
+	// Sistema particellare
+	Color rgb = computeRainbow();
+	for (int i = 0; i < 10; i++) {
+
+		PARTICLE p;
+		p.x = xPos_;
+		p.y = yPos_;
+		p.alpha = 1.0;
+		p.drag = 1.05;
+		p.xFactor = (rand() % 1000 + 1) / 300 * (rand() % 2 == 0 ? -1 : 1);
+		p.yFactor = (rand() % 1000 + 1) / 300 * (rand() % 2 == 0 ? -1 : 1);
+		p.color.r = rgb.r;
+		p.color.g = rgb.g;
+		p.color.b = rgb.b;
+		particles.push_back(p);
+	}
+
 
 	glutPostRedisplay();
 }
@@ -198,6 +287,13 @@ void init(void) {
 	//Scollego il VAO
 	glBindVertexArray(0);
 
+	// Sistema particellare
+	glGenVertexArrays(1, &VAO_SISTEMAPARTICELLARE);
+	glBindVertexArray(VAO_SISTEMAPARTICELLARE);
+	glGenBuffers(1, &VBO_SP);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_SP);
+	glBindVertexArray(0);
+
 
 	//Definisco il colore che verrà assegnato allo schermo
 	glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -222,9 +318,57 @@ void drawScene(void) {
 	glDrawArrays(GL_TRIANGLES, 0, vertices_Cielo);
 	glBindVertexArray(0);
 
+
+	// Sistema particellare
+
+	int P_size = 0; // particles.size();
+
+	for (int i = 0; i < particles.size(); i++) {
+
+		particles.at(i).xFactor /= particles.at(i).drag;
+		particles.at(i).yFactor /= particles.at(i).drag;
+
+		particles.at(i).x += particles.at(i).xFactor;
+		particles.at(i).y += particles.at(i).yFactor;
+
+		particles.at(i).alpha -= 0.05;
+
+		float xPos = (float)particles.at(i).x / width;
+		float yPos = (float)particles.at(i).y / height;
+
+		if (particles.at(i).alpha <= 0.0) {
+			particles.erase(particles.begin() + i);
+		}
+		else {
+			Punti[i].x = xPos;
+			Punti[i].y = yPos;
+			Punti[i].z = 0.0;
+			Punti[i].r = particles.at(i).color.r;
+			Punti[i].g = particles.at(i).color.g;
+			Punti[i].b = particles.at(i).color.b;
+			Punti[i].a = particles.at(i).alpha;
+			P_size += 1;
+		}
+	}
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBindVertexArray(VAO_SISTEMAPARTICELLARE);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_SP);
+	glBufferData(GL_ARRAY_BUFFER, P_size * sizeof(Point), &Punti[0], GL_STATIC_DRAW);
+	// Configura l'attributo posizione
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	// Configura l'attributo colore
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+	glPointSize(3.0);
+	glDrawArrays(GL_POINTS, 0, P_size);
+	glBindVertexArray(0);
+
+
 	// Disegna sole
 	Model = mat4(1.0);
-	Model = translate(Model, vec3(float(posSole_x), float(height - posSole_y), 0.0));   // posSole_y=0 quando y=height
+	Model = translate(Model, vec3(float(posSole_x), float(posSole_y), 0.0));
 	Model = scale(Model, vec3(30.0, 30.0, 1.0));
 	glUniformMatrix4fv(MatModel, 1, GL_FALSE, value_ptr(Model));
 	glBindVertexArray(VAO_SOLE);
@@ -233,7 +377,7 @@ void drawScene(void) {
 	glBindVertexArray(0);
 	//Disegna Alone del sole
 	Model = mat4(1.0);
-	Model = translate(Model, vec3(float(posSole_x), float(height - posSole_y), 0.0));   // posSole_y=0 quando y=height
+	Model = translate(Model, vec3(float(posSole_x), float(posSole_y), 0.0));
 	Model = scale(Model, vec3(80.0, 80.0, 1.0));
 	glUniformMatrix4fv(MatModel, 1, GL_FALSE, value_ptr(Model));
 	glBindVertexArray(VAO_SOLE);
@@ -244,23 +388,33 @@ void drawScene(void) {
 	glutSwapBuffers();
 }
 
+// Sistema particellare
+void update(int value) {
+
+	glutPostRedisplay();
+	glutTimerFunc(10, update, 0);	// Con 20 avremo la coda dei punti piu' lunga
+}
+
 int main(int argc, char* argv[]) {
 
 	glutInit(&argc, argv);
 
 	glutInitContextVersion(4, 0);
 	glutInitContextProfile(GLUT_COMPATIBILITY_PROFILE);
+	//glutInitContextProfile(GLUT_CORE_PROFILE);   // Sistema particellare
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 
 	glutInitWindowSize(width, height);
 	glutInitWindowPosition(100, 100);
 	glutCreateWindow("2D Animation");
 	glutDisplayFunc(drawScene);
-	glutKeyboardFunc(keyboardPressedEvent);   // Evento tastiera tasto premuto
-	glutPassiveMotionFunc(mouseMovedEvent);   // Cattura il movimento del mouse
 
-	//gestione animazione
-	//glutTimerFunc(66, update, 0);
+	// Sistema particellare
+	glutTimerFunc(20, update, 0);
+
+	glutKeyboardFunc(keyboardPressedEvent);   // Evento tastiera tasto premuto
+	glutPassiveMotionFunc(mouseMotionEvent);   // Cattura il movimento del mouse
+
 	glewExperimental = GL_TRUE;
 	glewInit();
 
