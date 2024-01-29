@@ -4,9 +4,10 @@
 #include <GL/freeglut.h>
 
 static unsigned int programId;
+#define PI 3.14159265358979323846
 
-unsigned int VAO_CIELO;
-unsigned int VBO_C, MatProj, MatModel;
+unsigned int VAO_CIELO, VAO_SOLE;
+unsigned int VBO_C, VBO_S, MatProj, MatModel;
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -23,10 +24,18 @@ mat4 Model; //Matrice per il cambiamento di sistema di riferimento:
 int width = 1280;
 int height = 720;
 
+
 float angolo = 0.0;
 typedef struct { float x, y, z, r, g, b, a; } Point;
+
+// Cielo
 int vertices_Cielo = 6;
 Point* Cielo = new Point[vertices_Cielo];
+
+//Sole
+int nTriangles_sole = 30;
+int vertices_sole = 3 * 2 * nTriangles_sole;
+Point* Sole = new Point[vertices_sole];
 
 
 
@@ -60,6 +69,71 @@ void disegna_piano(float x, float y, float width, float height, vec4 color_top, 
 	piano[5].r = color_bot.r; piano[5].g = color_bot.g; piano[5].b = color_bot.b; piano[5].a = color_bot.a;	
 }
 
+void disegna_cerchio(int nTriangles, int step, vec4 color_top, vec4 color_bot, Point* Cerchio) {
+
+	int i;
+	float stepA = (2 * PI) / nTriangles;
+
+	int comp = 0;
+	// step = 1 -> triangoli adiacenti, step = n -> triangoli distanti step l'uno dall'altro
+	for (i = 0; i < nTriangles; i += step) {
+
+		Cerchio[comp].x = cos((double)i * stepA);
+		Cerchio[comp].y = sin((double)i * stepA);
+		Cerchio[comp].z = 0.0;
+		Cerchio[comp].r = color_top.r;
+		Cerchio[comp].g = color_top.g;
+		Cerchio[comp].b = color_top.b;
+		Cerchio[comp].a = color_top.a;
+
+		Cerchio[comp + 1].x = cos((double)(i + 1) * stepA);
+		Cerchio[comp + 1].y = sin((double)(i + 1) * stepA);
+		Cerchio[comp + 1].z = 0.0;
+		Cerchio[comp + 1].r = color_top.r;
+		Cerchio[comp + 1].g = color_top.g;
+		Cerchio[comp + 1].b = color_top.b;
+		Cerchio[comp + 1].a = color_top.a;
+
+		Cerchio[comp + 2].x = 0.0;
+		Cerchio[comp + 2].y = 0.0;
+		Cerchio[comp + 2].z = 0.0;
+		Cerchio[comp + 2].r = color_bot.r;
+		Cerchio[comp + 2].g = color_bot.g;
+		Cerchio[comp + 2].b = color_bot.b;
+		Cerchio[comp + 2].a = color_bot.a;
+		
+		comp += 3;
+	}
+}
+
+void disegna_sole(int nTriangles, Point* Sole) {
+
+	int i, cont;
+	Point* OutSide;
+	int vertici = 3 * nTriangles;
+	OutSide = new Point[vertici];
+
+	vec4 col_top_sole = { 1.0, 1.0, 1.0, 1.0 };
+	vec4 col_bottom_sole = { 1.0, 0.8627, 0.0, 1.0 };
+	disegna_cerchio(nTriangles, 1, col_top_sole, col_bottom_sole, Sole);
+	
+	col_top_sole = { 1.0, 1.0, 1.0, 0.0 };
+	col_bottom_sole = { 1.0, 0.8627, 0.0, 1.0 };
+	disegna_cerchio(nTriangles, 1, col_top_sole, col_bottom_sole, OutSide);
+
+	cont = 3 * nTriangles;
+	for (i = 0; i < 3 * nTriangles; i++) {
+
+		Sole[cont + i].x = OutSide[i].x;
+		Sole[cont + i].y = OutSide[i].y;
+		Sole[cont + i].z = OutSide[i].z;
+		Sole[cont + i].r = OutSide[i].r;
+		Sole[cont + i].g = OutSide[i].g;
+		Sole[cont + i].b = OutSide[i].b;
+		Sole[cont + i].a = OutSide[i].a;
+	}
+}
+
 void initShader(void) {
 
 	GLenum ErrorCheckValue = glGetError();
@@ -77,6 +151,7 @@ void init(void) {
 	MatProj = glGetUniformLocation(programId, "Projection");
 	MatModel = glGetUniformLocation(programId, "Model");
 	
+
 	//Costruzione geometria e colori del CIELO
 	vec4 col_top =	{ 0.3,0.6,1.0,1.0 };
 	vec4 col_bottom = { 0.0 , 0.1, 1.0, 1.0 };
@@ -95,6 +170,22 @@ void init(void) {
 	//Scollego il VAO
 	glBindVertexArray(0);
 
+	//Costruzione geometria e colori del SOLE
+	//Genero il VAO del SOLE
+    disegna_sole(nTriangles_sole, Sole);
+	glGenVertexArrays(1, &VAO_SOLE);
+	glBindVertexArray(VAO_SOLE);
+	glGenBuffers(1, &VBO_S);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_S);
+	glBufferData(GL_ARRAY_BUFFER, vertices_sole * sizeof(Point), &Sole[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+	//Scollego il VAO
+	glBindVertexArray(0);
+
+
 	//Definisco il colore che verrà assegnato allo schermo
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 	
@@ -106,6 +197,7 @@ void drawScene(void) {
 	glUniformMatrix4fv(MatProj, 1, GL_FALSE, value_ptr(Projection));
 	glClear(GL_COLOR_BUFFER_BIT);
 
+
 	//Disegna cielo
 	//Matrice per il cambiamento del sistema di riferimento del cielo
 	Model = mat4(1.0);
@@ -116,6 +208,25 @@ void drawScene(void) {
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDrawArrays(GL_TRIANGLES, 0, vertices_Cielo);
 	glBindVertexArray(0);
+
+	// Disegna sole
+	Model = mat4(1.0);
+	Model = translate(Model, vec3(float(width) * 0.5, float(height) * 0.8, 0.0));
+	Model = scale(Model, vec3(30.0, 30.0, 1.0));
+	glUniformMatrix4fv(MatModel, 1, GL_FALSE, value_ptr(Model));
+	glBindVertexArray(VAO_SOLE);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glDrawArrays(GL_TRIANGLES, 0, vertices_sole / 2);
+	glBindVertexArray(0);
+	//Disegna Alone del sole
+	Model = mat4(1.0);
+	Model = translate(Model, vec3(float(width) * 0.5, float(height) * 0.8, 0.0));
+	Model = scale(Model, vec3(80.0, 80.0, 1.0));
+	glUniformMatrix4fv(MatModel, 1, GL_FALSE, value_ptr(Model));
+	glBindVertexArray(VAO_SOLE);
+	glDrawArrays(GL_TRIANGLES, vertices_sole / 2, vertices_sole / 2);
+	glBindVertexArray(0); // IL VAO NON VA SCOLLEGATO ???
+
 
 	glutSwapBuffers();
 }
