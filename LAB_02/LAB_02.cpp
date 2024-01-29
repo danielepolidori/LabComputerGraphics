@@ -32,10 +32,15 @@ typedef struct { float x, y, z, r, g, b, a; } Point;
 int vertices_Cielo = 6;
 Point* Cielo = new Point[vertices_Cielo];
 
-//Sole
+// Sole
 int nTriangles_sole = 30;
 int vertices_sole = 3 * 2 * nTriangles_sole;
 Point* Sole = new Point[vertices_sole];
+
+
+// Posizione del sole
+int posSole_x = 0;
+int posSole_y = 0;
 
 
 
@@ -50,6 +55,14 @@ void keyboardPressedEvent(unsigned char key, int x, int y) {
 		default:
 			break;
 	}
+}
+
+void mouseMovedEvent(int x, int y) {
+
+	posSole_x = x;
+	posSole_y = y;
+
+	glutPostRedisplay();
 }
 
 void disegna_piano(float x, float y, float width, float height, vec4 color_top, vec4 color_bot, Point* piano) {
@@ -114,6 +127,7 @@ void disegna_sole(int nTriangles, Point* Sole) {
 	OutSide = new Point[vertici];
 
 	vec4 col_top_sole = { 1.0, 1.0, 1.0, 1.0 };
+	//vec4 col_top_sole = { 0.5, 0.5, 0.5, 0.5 };   // PER MODIFICARE LA STRUTTURA DEL SOLE
 	vec4 col_bottom_sole = { 1.0, 0.8627, 0.0, 1.0 };
 	disegna_cerchio(nTriangles, 1, col_top_sole, col_bottom_sole, Sole);
 	
@@ -155,8 +169,7 @@ void init(void) {
 	//Costruzione geometria e colori del CIELO
 	vec4 col_top =	{ 0.3,0.6,1.0,1.0 };
 	vec4 col_bottom = { 0.0 , 0.1, 1.0, 1.0 };
-	//disegna_piano(0, 0, 1, 1, col_bottom, col_top, Cielo);
-	disegna_piano(0, -1, 1, 2, col_bottom, col_top, Cielo);
+	disegna_piano(0, 0, 1, 1, col_bottom, col_top, Cielo);
 	//Generazione del VAO del Cielo
 	glGenVertexArrays(1, &VAO_CIELO);
 	glBindVertexArray(VAO_CIELO);
@@ -201,8 +214,8 @@ void drawScene(void) {
 	//Disegna cielo
 	//Matrice per il cambiamento del sistema di riferimento del cielo
 	Model = mat4(1.0);
-	Model = translate(Model, vec3(0.0, float(height) / 2, 0.0));
-	Model = scale(Model, vec3(float(width), float(height) / 2, 1.0));
+	Model = translate(Model, vec3(0.0, 0.0, 0.0));
+	Model = scale(Model, vec3(float(width), float(height), 1.0));
 	glUniformMatrix4fv(MatModel, 1, GL_FALSE, value_ptr(Model));
 	glBindVertexArray(VAO_CIELO);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -211,7 +224,7 @@ void drawScene(void) {
 
 	// Disegna sole
 	Model = mat4(1.0);
-	Model = translate(Model, vec3(float(width) * 0.5, float(height) * 0.8, 0.0));
+	Model = translate(Model, vec3(float(posSole_x), float(height - posSole_y), 0.0));   // posSole_y=0 quando y=height
 	Model = scale(Model, vec3(30.0, 30.0, 1.0));
 	glUniformMatrix4fv(MatModel, 1, GL_FALSE, value_ptr(Model));
 	glBindVertexArray(VAO_SOLE);
@@ -220,7 +233,7 @@ void drawScene(void) {
 	glBindVertexArray(0);
 	//Disegna Alone del sole
 	Model = mat4(1.0);
-	Model = translate(Model, vec3(float(width) * 0.5, float(height) * 0.8, 0.0));
+	Model = translate(Model, vec3(float(posSole_x), float(height - posSole_y), 0.0));   // posSole_y=0 quando y=height
 	Model = scale(Model, vec3(80.0, 80.0, 1.0));
 	glUniformMatrix4fv(MatModel, 1, GL_FALSE, value_ptr(Model));
 	glBindVertexArray(VAO_SOLE);
@@ -244,6 +257,7 @@ int main(int argc, char* argv[]) {
 	glutCreateWindow("2D Animation");
 	glutDisplayFunc(drawScene);
 	glutKeyboardFunc(keyboardPressedEvent);   // Evento tastiera tasto premuto
+	glutPassiveMotionFunc(mouseMovedEvent);   // Cattura il movimento del mouse
 
 	//gestione animazione
 	//glutTimerFunc(66, update, 0);
