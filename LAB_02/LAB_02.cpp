@@ -2,9 +2,7 @@
 #include "ShaderMaker.h"
 #include <GL/glew.h>
 #include <GL/freeglut.h>
-
-// Sistema particellare
-#include <vector>
+#include <vector>   // Sistema particellare
 
 static unsigned int programId;
 #define PI 3.14159265358979323846
@@ -43,8 +41,8 @@ int vertices_sole = 3 * 2 * nTriangles_sole;
 Point* Sole = new Point[vertices_sole];
 
 // Posizione del sole
-int posSole_x = 0;
-int posSole_y = 0;
+int posSole_x = 0;   // [0, width]
+int posSole_y = 0;   // [0, height]
 
 
 // Sistema particellare
@@ -69,6 +67,16 @@ vector <PARTICLE> particles;
 
 int nPoint = 5000;
 Point* Punti = new Point[nPoint];
+
+
+// Aloni nel cielo
+
+int num_aloni = 10;
+
+// Posizione degli aloni
+//  - An empty initializer can be used to initialize an array
+float xPos_rand[10] = {};   // ~ xPos_rand[num_aloni];
+float yPos_rand[10] = {};   // ~ yPos_rand[num_aloni];
 
 
 
@@ -154,6 +162,7 @@ void mouseMotionEvent(int x, int y) {
 	glutPostRedisplay();
 }
 
+// Cielo
 void disegna_piano(float x, float y, float width, float height, vec4 color_top, vec4 color_bot, Point* piano) {
 
 	piano[0].x = x;	piano[0].y = y; piano[0].z = 0;
@@ -171,6 +180,7 @@ void disegna_piano(float x, float y, float width, float height, vec4 color_top, 
 	piano[5].r = color_bot.r; piano[5].g = color_bot.g; piano[5].b = color_bot.b; piano[5].a = color_bot.a;	
 }
 
+// Sole
 void disegna_cerchio(int nTriangles, int step, vec4 color_top, vec4 color_bot, Point* Cerchio) {
 
 	int i;
@@ -294,6 +304,14 @@ void init(void) {
 	glBindBuffer(GL_ARRAY_BUFFER, VBO_SP);
 	glBindVertexArray(0);
 
+	// Aloni nel cielo
+	for (int i = 0; i < num_aloni; i++) {
+
+		// Imposto la posizione degli aloni (con valori random)
+		xPos_rand[i] = rand() % width;
+		yPos_rand[i] = rand() % height;
+	}
+
 
 	//Definisco il colore che verrà assegnato allo schermo
 	glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -375,6 +393,7 @@ void drawScene(void) {
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDrawArrays(GL_TRIANGLES, 0, vertices_sole / 2);
 	glBindVertexArray(0);
+
 	//Disegna Alone del sole
 	Model = mat4(1.0);
 	Model = translate(Model, vec3(float(posSole_x), float(posSole_y), 0.0));
@@ -382,7 +401,20 @@ void drawScene(void) {
 	glUniformMatrix4fv(MatModel, 1, GL_FALSE, value_ptr(Model));
 	glBindVertexArray(VAO_SOLE);
 	glDrawArrays(GL_TRIANGLES, vertices_sole / 2, vertices_sole / 2);
-	glBindVertexArray(0); // IL VAO NON VA SCOLLEGATO ???
+	//glBindVertexArray(0);   // Il VAO non va scollegato, perche' lo uso anche per gli aloni nel cielo
+
+
+	// Aloni luminosi nel cielo
+	//  - Uso lo stesso VAO del sole e del suo alone (VAO_SOLE)
+	for (int i = 0; i < num_aloni; i++) {   // Creo 10 copie, ognuna nella propria posizione
+
+		Model = mat4(1.0);
+		Model = translate(Model, vec3(xPos_rand[i], yPos_rand[i], 0.0));
+		Model = scale(Model, vec3(20.0, 20.0, 1.0));
+		glUniformMatrix4fv(MatModel, 1, GL_FALSE, value_ptr(Model));
+		glDrawArrays(GL_TRIANGLES, vertices_sole / 2, vertices_sole / 2);
+	}
+	glBindVertexArray(0);   // Alla fine delle copie, scollego il VAO
 
 
 	glutSwapBuffers();
@@ -412,8 +444,8 @@ int main(int argc, char* argv[]) {
 	// Sistema particellare
 	glutTimerFunc(20, update, 0);
 
-	glutKeyboardFunc(keyboardPressedEvent);   // Evento tastiera tasto premuto
-	glutPassiveMotionFunc(mouseMotionEvent);   // Cattura il movimento del mouse
+	glutKeyboardFunc(keyboardPressedEvent);		// Evento tastiera tasto premuto
+	glutPassiveMotionFunc(mouseMotionEvent);	// Cattura il movimento del mouse
 
 	glewExperimental = GL_TRUE;
 	glewInit();
