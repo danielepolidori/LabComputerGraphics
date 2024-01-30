@@ -519,6 +519,27 @@ void drawScene(void) {
 	glBindVertexArray(0);   // Alla fine delle copie, scollego il VAO
 
 
+	// Animazione aloni con sistema particellare
+	Color rgb = { 1.0, 1.0, 0.0 };   // Imposto il colore delle particelle degli aloni
+	for (int j = 0; j < num_aloni; j++) {
+
+		if (!alone_inglobato[j]) {
+
+			PARTICLE p;
+			p.x = posAlone_x[j];
+			p.y = posAlone_y[j];
+			p.alpha = 1.0;
+			p.drag = 1.05;
+			p.xFactor = (rand() % 1000 + 1) / 300 * (rand() % 2 == 0 ? -1 : 1);
+			p.yFactor = (rand() % 1000 + 1) / 300 * (rand() % 2 == 0 ? -1 : 1);
+			p.color.r = rgb.r;
+			p.color.g = rgb.g;
+			p.color.b = rgb.b;
+			particles.push_back(p);
+		}
+	}
+
+
 	// Animazione cielo
 
 	if (delay <= 0) {
