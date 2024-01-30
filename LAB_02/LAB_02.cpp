@@ -40,6 +40,9 @@ int nTriangles_sole = 30;
 int vertices_sole = 3 * 2 * nTriangles_sole;
 Point* Sole = new Point[vertices_sole];
 int intorno = 30;   // Facilita il riconoscere dove si trova il sole
+int scalaIniziale_aloneSole = 50;
+int fattoreDiScala_aloneSole = 5;
+int scala_aloneSole = scalaIniziale_aloneSole;
 
 // Posizione del sole
 int posSole_x = 0;   // [0, width]
@@ -74,6 +77,7 @@ Point* Punti = new Point[nPoint];
 
 int num_aloni = 10;
 bool alone_inglobato[10] = {};	// Indica se l'alone e' stato inglobato (quindi non e' piu' visibile)
+int num_aloni_inglobati = 0;	// Tiene conto del numero di aloni inglobati (in quel momento). Il valore max e' num_aloni (si resetta quando viene toccato il bordo).
 
 // Posizione degli aloni
 //  - An empty initializer can be used to initialize an array
@@ -191,15 +195,18 @@ void mouseMotionEvent(int x, int y) {
 		particles.push_back(p);
 	}
 
-	// Controllo se il sole sta toccando un alone
+	// Controllo se il sole sta toccando un alone (non inglobato)
 	for (int i = 0; i < num_aloni; i++) {   // Scorro gli aloni
 
-		if (xPos_ < posAlone_x[i] + intorno &&
+		if (!alone_inglobato[i] &&
+			xPos_ < posAlone_x[i] + intorno &&
 		    xPos_ > posAlone_x[i] - intorno &&
 		    yPos_ < posAlone_y[i] + intorno &&
 		    yPos_ > posAlone_y[i] - intorno) {
 
 			alone_inglobato[i] = true;
+			num_aloni_inglobati++;
+			scala_aloneSole += num_aloni_inglobati * fattoreDiScala_aloneSole;
 		}
 	}
 
@@ -239,7 +246,7 @@ void mouseMotionEvent(int x, int y) {
 				
 				Color rgb = { 1.0, 0.65, 0.0 };   // Imposto il colore delle particelle (arancione)
 				
-				for (int i = 0; i < 100; i++) {   // DIMINUIRE QUESTO NUMERO IN CASO DI ERRORE CORE DUMP
+				for (int i = 0; i < 10; i++) {   // DIMINUIRE QUESTO NUMERO IN CASO DI ERRORE CORE DUMP
 
 					PARTICLE p;
 					p.x = posAlone_x[al];
@@ -257,6 +264,8 @@ void mouseMotionEvent(int x, int y) {
 
 			alone_inglobato[al] = false;
 		}
+		num_aloni_inglobati = 0;
+		scala_aloneSole = scalaIniziale_aloneSole;
 	}
 
 
@@ -541,7 +550,7 @@ void drawScene(void) {
 	//Disegna Alone del sole
 	Model = mat4(1.0);
 	Model = translate(Model, vec3(float(posSole_x), float(posSole_y), 0.0));
-	Model = scale(Model, vec3(50.0, 50.0, 1.0));
+	Model = scale(Model, vec3(float(scala_aloneSole), float(scala_aloneSole), 1.0));
 	glUniformMatrix4fv(MatModel, 1, GL_FALSE, value_ptr(Model));
 	glBindVertexArray(VAO_SOLE);
 	glDrawArrays(GL_TRIANGLES, vertices_sole / 2, vertices_sole / 2);
