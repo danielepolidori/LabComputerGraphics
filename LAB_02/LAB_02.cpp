@@ -98,36 +98,56 @@ void keyboardPressedEvent(unsigned char key, int x, int y) {
 // Sistema particellare
 Color computeRainbow() {
 
-	static float rgb[3] = { 1.0, 0.0, 0.0 };
+	//static float rgb[3] = { 1.0, 0.0, 0.0 };
+	static float rgb[3] = { 1.0, 1.0, 0.0 };
 	static int fase = 0, counter = 0;
 	const float step = 0.1;
 	Color paint;
 
-	 switch (fase) {
-		case 0: rgb[1] += step;
-		break;
-		case 1: rgb[0] -= step;
-		break;
-		case 2: rgb[2] += step;
-		break;
-		case 3: rgb[1] -= step;
-		break;
-		case 4: rgb[0] += step;
-		break;
-		case 5: rgb[2] -= step;
-		break;
+	switch (fase) {
+
+		case 0:
+			rgb[1] += step;
+			break;
+
+		case 1:
+			rgb[0] -= step;
+			break;
+
+		case 2:
+			rgb[2] += step;
+			break;
+
+		case 3:
+			rgb[1] -= step;
+			break;
+
+		case 4:
+			rgb[0] += step;
+			break;
+
+		case 5:
+			rgb[2] -= step;
+			break;
+
 		default:
-		break;
+			break;
 	}
 	//fprintf(stdout, "Rosso e verde e blu: %f,%f,%f, counter= %i\n", rgb[0], rgb[1], rgb[2], counter);
 
-	 counter++;
+	counter++;
 	if (counter > 1.0 / step) {
+	
 		counter = 0;
 		fase < 5 ? fase++ : fase = 0;
 	}
 
-	 paint.r = rgb[0];
+	//MIO
+	rgb[0] += 0.1; if(rgb[0] > 1.0) rgb[0]=1.0;
+	rgb[1] += 0.1; if(rgb[1] > 1.0) rgb[1]=1.0;
+	rgb[2] = 0.0;
+
+	paint.r = rgb[0];
 	paint.g = rgb[1];
 	paint.b = rgb[2];
 	return paint;
@@ -145,6 +165,7 @@ void mouseMotionEvent(int x, int y) {
 
 	// Sistema particellare
 	Color rgb = computeRainbow();
+	//Color rgb = { 1.0, 1.0, 0.0 };
 	for (int i = 0; i < 10; i++) {
 
 		PARTICLE p;
@@ -251,13 +272,16 @@ void disegna_sole(int nTriangles, Point* Sole) {
 	int vertici = 3 * nTriangles;
 	OutSide = new Point[vertici];
 
-	vec4 col_top_sole = { 1.0, 1.0, 1.0, 1.0 };
+	//vec4 col_top_sole = { 1.0, 1.0, 1.0, 1.0 };
+	vec4 col_top_sole = { 1.0, 1.0, 0.2, 1.0 };
 	//vec4 col_top_sole = { 0.5, 0.5, 0.5, 0.5 };   // PER MODIFICARE LA STRUTTURA DEL SOLE
 	vec4 col_bottom_sole = { 1.0, 0.8627, 0.0, 1.0 };
 	disegna_cerchio(nTriangles, 1, col_top_sole, col_bottom_sole, Sole);
 	
 	col_top_sole = { 1.0, 1.0, 1.0, 0.0 };
-	col_bottom_sole = { 1.0, 0.8627, 0.0, 1.0 };
+	//col_bottom_sole = { 1.0, 0.8627, 0.0, 1.0 };
+	col_bottom_sole = { 1.0, 1.0, 0.6, 1.0 };
+	//col_bottom_sole = { 0.9, 1.0, 1.0, 1.0 };
 	disegna_cerchio(nTriangles, 1, col_top_sole, col_bottom_sole, OutSide);
 
 	cont = 3 * nTriangles;
@@ -292,8 +316,8 @@ void init(void) {
 	
 
 	//Costruzione geometria e colori del CIELO
-	vec4 col_top =	{ 0.3,0.6,1.0,1.0 };
-	vec4 col_bottom = { 0.0 , 0.1, 1.0, 1.0 };
+	vec4 col_top =	{ 0.3, 0.6, 1.0, 0.2 };
+	vec4 col_bottom = { 0.20, 0.23, 0.57, 1.0 };
 	disegna_piano(0, 0, 1, 1, col_bottom, col_top, Cielo);
 	//Generazione del VAO del Cielo
 	glGenVertexArrays(1, &VAO_CIELO);
@@ -413,7 +437,8 @@ void drawScene(void) {
 	// Disegna sole
 	Model = mat4(1.0);
 	Model = translate(Model, vec3(float(posSole_x), float(posSole_y), 0.0));
-	Model = scale(Model, vec3(30.0, 30.0, 1.0));
+	//Model = scale(Model, vec3(30.0, 30.0, 1.0));
+	Model = scale(Model, vec3(25.0, 25.0, 1.0));
 	glUniformMatrix4fv(MatModel, 1, GL_FALSE, value_ptr(Model));
 	glBindVertexArray(VAO_SOLE);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -423,7 +448,8 @@ void drawScene(void) {
 	//Disegna Alone del sole
 	Model = mat4(1.0);
 	Model = translate(Model, vec3(float(posSole_x), float(posSole_y), 0.0));
-	Model = scale(Model, vec3(80.0, 80.0, 1.0));
+	//Model = scale(Model, vec3(80.0, 80.0, 1.0));
+	Model = scale(Model, vec3(50.0, 50.0, 1.0));
 	glUniformMatrix4fv(MatModel, 1, GL_FALSE, value_ptr(Model));
 	glBindVertexArray(VAO_SOLE);
 	glDrawArrays(GL_TRIANGLES, vertices_sole / 2, vertices_sole / 2);
