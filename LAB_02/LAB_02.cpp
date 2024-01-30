@@ -88,6 +88,7 @@ int num_luci = 5;
 int posLuce_x[5] = {};   // ~ posLuce_x[num_luci]
 int posLuce_y[5] = {};   // ~ posLuce_y[num_luci]
 Point* Luci = new Point[vertices_sole];
+bool foo = false;
 
 
 
@@ -202,15 +203,59 @@ void mouseMotionEvent(int x, int y) {
 		}
 	}
 
-	// Controllo se il sole sta toccando il bordo dello schermo
+	// Se il sole sta toccando il bordo dello schermo
 	if (xPos_ < 0 + intorno ||
 	    xPos_ > width - intorno ||
 	    yPos_ < 0 + intorno ||
 	    yPos_ > height - intorno) {
 
-		for (int i = 0; i < num_aloni; i++) {
+		// Il cielo si riempie di particelle
+		for (int j = 0; j < 10; j++) {
 
-			alone_inglobato[i] = false;
+			Color rgb = { 1.0, 0.0, 0.0 };   // Imposto il colore delle particelle (rosso)
+				
+			for (int i = 0; i < 10; i++) {
+
+				PARTICLE p;
+				p.x = rand() % width;	// Numero casuale nell'intervallo [0, width]
+				p.y = rand() % height;	// Numero casuale nell'intervallo [0, height]
+				p.alpha = 1.0;
+				p.drag = 1.05;
+				p.xFactor = (rand() % 1000 + 1) / 300 * (rand() % 2 == 0 ? -1 : 1);
+				p.yFactor = (rand() % 1000 + 1) / 300 * (rand() % 2 == 0 ? -1 : 1);
+				p.color.r = rgb.r;
+				p.color.g = rgb.g;
+				p.color.b = rgb.b;
+				particles.push_back(p);
+			}
+		}
+
+		// Faccio ricomparire tutti gli aloni inglobati
+		for (int al = 0; al < num_aloni; al++) {
+
+			if (alone_inglobato[al]) {   // Se l'alone corrente era stato inglobato
+
+				// Creo, sulla sua posizione, delle particelle arancioni (prima di farlo ricomparire)
+				
+				Color rgb = { 1.0, 0.65, 0.0 };   // Imposto il colore delle particelle (arancione)
+				
+				for (int i = 0; i < 100; i++) {   // DIMINUIRE QUESTO NUMERO IN CASO DI ERRORE CORE DUMP
+
+					PARTICLE p;
+					p.x = posAlone_x[al];
+					p.y = posAlone_y[al];
+					p.alpha = 1.0;
+					p.drag = 1.05;
+					p.xFactor = (rand() % 1000 + 1) / 300 * (rand() % 2 == 0 ? -1 : 1);
+					p.yFactor = (rand() % 1000 + 1) / 300 * (rand() % 2 == 0 ? -1 : 1);
+					p.color.r = rgb.r;
+					p.color.g = rgb.g;
+					p.color.b = rgb.b;
+					particles.push_back(p);
+				}
+			}
+
+			alone_inglobato[al] = false;
 		}
 	}
 
@@ -316,7 +361,7 @@ void disegna_luce(int nTriangles, Point* Sole) {
 	disegna_cerchio(nTriangles, 1, col_top_sole, col_bottom_sole, Sole);
 	
 	col_top_sole = { 1.0, 1.0, 1.0, 0.0 };
-	col_bottom_sole = { 0.1, 0.1, 0.1, 0.05 };
+	col_bottom_sole = { 0.1, 0.1, 0.1, 0.05 };   // Imposto il colore delle luci dell'animazione
 	disegna_cerchio(nTriangles, 1, col_top_sole, col_bottom_sole, OutSide);
 
 	cont = 3 * nTriangles;
@@ -393,8 +438,8 @@ void init(void) {
 	for (int i = 0; i < num_aloni; i++) {
 
 		// Imposto la posizione degli aloni (con valori random)
-		posAlone_x[i] = rand() % width;
-		posAlone_y[i] = rand() % height;
+		posAlone_x[i] = rand() % width;		// Numero casuale nell'intervallo [0, width]
+		posAlone_y[i] = rand() % height;	// Numero casuale nell'intervallo [0, height]
 	}
 
 	// Animazione cielo
@@ -520,10 +565,10 @@ void drawScene(void) {
 
 
 	// Animazione aloni con sistema particellare
-	Color rgb = { 1.0, 1.0, 0.0 };   // Imposto il colore delle particelle degli aloni
+	Color rgb = { 1.0, 0.65, 0.0 };   // Imposto il colore delle particelle degli aloni (arancione)
 	for (int j = 0; j < num_aloni; j++) {
 
-		if (!alone_inglobato[j]) {
+		if (!alone_inglobato[j]) {   // Se l'alone e' presente in scena
 
 			PARTICLE p;
 			p.x = posAlone_x[j];
@@ -546,8 +591,8 @@ void drawScene(void) {
 
 		for (int i = 0; i < num_luci; i++) {
 
-			posLuce_x[i] = rand() % width;
-			posLuce_y[i] = rand() % height;
+			posLuce_x[i] = rand() % width;		// Numero casuale nell'intervallo [0, width]
+			posLuce_y[i] = rand() % height;		// Numero casuale nell'intervallo [0, height]
 		}
 
 		delay = num_delay;
