@@ -40,9 +40,9 @@ int nTriangles_sole = 30;
 int vertices_sole = 3 * 2 * nTriangles_sole;
 Point* Sole = new Point[vertices_sole];
 int intorno = 30;   // Facilita il riconoscere dove si trova il sole
-int scalaIniziale_aloneSole = 50;
-int fattoreDiScala_aloneSole = 5;
-int scala_aloneSole = scalaIniziale_aloneSole;
+float scalaIniziale_aloneSole = 50.0;
+float fattoreDiScala_aloneSole = 5.0;
+float scala_aloneSole = scalaIniziale_aloneSole;
 
 // Posizione del sole
 int posSole_x = 0;   // [0, width]
@@ -92,7 +92,8 @@ int num_luci = 5;
 int posLuce_x[5] = {};   // ~ posLuce_x[num_luci]
 int posLuce_y[5] = {};   // ~ posLuce_y[num_luci]
 Point* Luci = new Point[vertices_sole];
-bool foo = false;
+
+bool vittoria = false;   // Indica se la partita e' vinta
 
 
 
@@ -109,6 +110,7 @@ void keyboardPressedEvent(unsigned char key, int x, int y) {
 	}
 }
 
+/*
 // Sistema particellare
 Color computeRainbow() {
 
@@ -155,16 +157,26 @@ Color computeRainbow() {
 		counter = 0;
 		fase < 5 ? fase++ : fase = 0;
 	}
-/*
+
 	//MIO
-	rgb[0] += 0.1; if(rgb[0] > 1.0) rgb[0]=1.0;
-	rgb[1] += 0.1; if(rgb[1] > 1.0) rgb[1]=1.0;
-	rgb[2] = 0.0;
-*/
+	//rgb[0] += 0.1; if(rgb[0] > 1.0) rgb[0]=1.0;
+	//rgb[1] += 0.1; if(rgb[1] > 1.0) rgb[1]=1.0;
+	//rgb[2] = 0.0;
+
 	paint.r = rgb[0];
 	paint.g = rgb[1];
 	paint.b = rgb[2];
 	return paint;
+}
+*/
+
+// Vittoria
+//  - Ingrandisco progressivamente l'alone del sole (senza mai fermarsi)
+void aumentaScala_aloneSole(int value) {
+
+	scala_aloneSole += 0.1;
+
+	glutTimerFunc(1, aumentaScala_aloneSole, 0);   // Dopo 1 ms richiama se' stessa
 }
 
 void mouseMotionEvent(int x, int y) {
@@ -206,15 +218,28 @@ void mouseMotionEvent(int x, int y) {
 
 			alone_inglobato[i] = true;
 			num_aloni_inglobati++;
-			scala_aloneSole += num_aloni_inglobati * fattoreDiScala_aloneSole;
+
+			if (num_aloni_inglobati >= num_aloni) {   // Se ho vinto la partita
+
+				vittoria = true;
+
+				// Ingrandisco progressivamente l'alone del sole (senza mai fermarsi)
+				for (int j = 0; j < 50; j++) {   // Faccio 50 chiamate alla funzione (che a sua volta richiama se' stessa, a cascata, senza mai fermarsi)
+
+					glutTimerFunc(1, aumentaScala_aloneSole, 0);   // Faccio la chiamata dopo 1 ms
+				}
+			}
+			else
+				scala_aloneSole += fattoreDiScala_aloneSole;   // Ingrandisco l'alone del sole
 		}
 	}
 
-	// Se il sole sta toccando il bordo dello schermo
-	if (xPos_ < 0 + intorno ||
+	// Se il sole sta toccando il bordo dello schermo (penalita')
+	if (!vittoria &&
+		(xPos_ < 0 + intorno ||
 	    xPos_ > width - intorno ||
 	    yPos_ < 0 + intorno ||
-	    yPos_ > height - intorno) {
+	    yPos_ > height - intorno)) {
 
 		// Il cielo si riempie di particelle
 		for (int j = 0; j < 10; j++) {
@@ -240,32 +265,10 @@ void mouseMotionEvent(int x, int y) {
 		// Faccio ricomparire tutti gli aloni inglobati
 		for (int al = 0; al < num_aloni; al++) {
 
-			if (alone_inglobato[al]) {   // Se l'alone corrente era stato inglobato
-
-				// Creo, sulla sua posizione, delle particelle arancioni (prima di farlo ricomparire)
-				
-				Color rgb = { 1.0, 0.65, 0.0 };   // Imposto il colore delle particelle (arancione)
-				
-				for (int i = 0; i < 10; i++) {   // DIMINUIRE QUESTO NUMERO IN CASO DI ERRORE CORE DUMP
-
-					PARTICLE p;
-					p.x = posAlone_x[al];
-					p.y = posAlone_y[al];
-					p.alpha = 1.0;
-					p.drag = 1.05;
-					p.xFactor = (rand() % 1000 + 1) / 300 * (rand() % 2 == 0 ? -1 : 1);
-					p.yFactor = (rand() % 1000 + 1) / 300 * (rand() % 2 == 0 ? -1 : 1);
-					p.color.r = rgb.r;
-					p.color.g = rgb.g;
-					p.color.b = rgb.b;
-					particles.push_back(p);
-				}
-			}
-
 			alone_inglobato[al] = false;
 		}
 		num_aloni_inglobati = 0;
-		scala_aloneSole = scalaIniziale_aloneSole;
+		scala_aloneSole = scalaIniziale_aloneSole;   // Riduco l'alone del sole al suo valore iniziale
 	}
 
 
@@ -550,7 +553,7 @@ void drawScene(void) {
 	//Disegna Alone del sole
 	Model = mat4(1.0);
 	Model = translate(Model, vec3(float(posSole_x), float(posSole_y), 0.0));
-	Model = scale(Model, vec3(float(scala_aloneSole), float(scala_aloneSole), 1.0));
+	Model = scale(Model, vec3(scala_aloneSole, scala_aloneSole, 1.0));
 	glUniformMatrix4fv(MatModel, 1, GL_FALSE, value_ptr(Model));
 	glBindVertexArray(VAO_SOLE);
 	glDrawArrays(GL_TRIANGLES, vertices_sole / 2, vertices_sole / 2);
