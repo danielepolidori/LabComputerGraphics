@@ -72,11 +72,13 @@ Point* Punti = new Point[nPoint];
 // Aloni nel cielo
 
 int num_aloni = 10;
+bool alone_inglobato[10] = {};	// Indica se l'alone e' stato inglobato (quindi non e' piu' visibile)
+int intorno = 30;   			// Facilita il riconoscere che ci si trova sopra un alone (con il mouse)
 
 // Posizione degli aloni
 //  - An empty initializer can be used to initialize an array
-float xPos_rand[10] = {};   // ~ xPos_rand[num_aloni];
-float yPos_rand[10] = {};   // ~ yPos_rand[num_aloni];
+int posAlone_x[10] = {};   // ~ posAlone_x[num_aloni];
+int posAlone_y[10] = {};   // ~ posAlone_y[num_aloni];
 
 
 
@@ -156,6 +158,18 @@ void mouseMotionEvent(int x, int y) {
 		p.color.g = rgb.g;
 		p.color.b = rgb.b;
 		particles.push_back(p);
+	}
+
+	// Controllo se il sole sta toccando un alone
+	for (int i = 0; i < num_aloni; i++) {   // Scorro gli aloni
+
+		if (xPos_ < posAlone_x[i] + intorno &&
+		    xPos_ > posAlone_x[i] - intorno &&
+		    yPos_ < posAlone_y[i] + intorno &&
+		    yPos_ > posAlone_y[i] - intorno) {
+
+			alone_inglobato[i] = true;
+		}
 	}
 
 
@@ -308,8 +322,8 @@ void init(void) {
 	for (int i = 0; i < num_aloni; i++) {
 
 		// Imposto la posizione degli aloni (con valori random)
-		xPos_rand[i] = rand() % width;
-		yPos_rand[i] = rand() % height;
+		posAlone_x[i] = rand() % width;
+		posAlone_y[i] = rand() % height;
 	}
 
 
@@ -406,13 +420,16 @@ void drawScene(void) {
 
 	// Aloni luminosi nel cielo
 	//  - Uso lo stesso VAO del sole e del suo alone (VAO_SOLE)
-	for (int i = 0; i < num_aloni; i++) {   // Creo 10 copie, ognuna nella propria posizione
+	for (int i = 0; i < num_aloni; i++) {   // Creo piu' copie, ognuna nella propria posizione
 
-		Model = mat4(1.0);
-		Model = translate(Model, vec3(xPos_rand[i], yPos_rand[i], 0.0));
-		Model = scale(Model, vec3(20.0, 20.0, 1.0));
-		glUniformMatrix4fv(MatModel, 1, GL_FALSE, value_ptr(Model));
-		glDrawArrays(GL_TRIANGLES, vertices_sole / 2, vertices_sole / 2);
+		if (!alone_inglobato[i]) {   // Se l'alone non e' stato inglobato, allora lo mostro
+
+			Model = mat4(1.0);
+			Model = translate(Model, vec3(float(posAlone_x[i]), float(posAlone_y[i]), 0.0));
+			Model = scale(Model, vec3(20.0, 20.0, 1.0));
+			glUniformMatrix4fv(MatModel, 1, GL_FALSE, value_ptr(Model));
+			glDrawArrays(GL_TRIANGLES, vertices_sole / 2, vertices_sole / 2);
+		}
 	}
 	glBindVertexArray(0);   // Alla fine delle copie, scollego il VAO
 
