@@ -458,6 +458,8 @@ void update(int value) {
 
 int main(int argc, char* argv[]) {
 
+	srand((unsigned int)time(NULL));   // Per la funzione `rand`
+
 	glutInit(&argc, argv);
 
 	glutInitContextVersion(4, 0);
