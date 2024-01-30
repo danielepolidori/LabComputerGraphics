@@ -7,8 +7,8 @@
 static unsigned int programId;
 #define PI 3.14159265358979323846
 
-unsigned int VAO_CIELO, VAO_SOLE, VAO_SISTEMAPARTICELLARE;
-unsigned int VBO_C, VBO_S, VBO_SP, MatProj, MatModel;
+unsigned int VAO_CIELO, VAO_SOLE, VAO_SISTEMAPARTICELLARE, VAO_ANIMAZIONECIELO;
+unsigned int VBO_C, VBO_S, VBO_SP, VBO_AC, MatProj, MatModel;
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -81,6 +81,15 @@ int posAlone_x[10] = {};   // ~ posAlone_x[num_aloni];
 int posAlone_y[10] = {};   // ~ posAlone_y[num_aloni];
 
 
+// Animazione cielo
+int num_delay = 6;
+int delay = num_delay;
+int num_luci = 5;
+int posLuce_x[5] = {};   // ~ posLuce_x[num_luci]
+int posLuce_y[5] = {};   // ~ posLuce_y[num_luci]
+Point* Luci = new Point[vertices_sole];
+
+
 
 void keyboardPressedEvent(unsigned char key, int x, int y) {
 
@@ -99,7 +108,7 @@ void keyboardPressedEvent(unsigned char key, int x, int y) {
 Color computeRainbow() {
 
 	//static float rgb[3] = { 1.0, 0.0, 0.0 };
-	static float rgb[3] = { 1.0, 1.0, 0.0 };
+	static float rgb[3] = { 1.0, 1.0, 0.0 }; //MIO
 	static int fase = 0, counter = 0;
 	const float step = 0.1;
 	Color paint;
@@ -141,12 +150,12 @@ Color computeRainbow() {
 		counter = 0;
 		fase < 5 ? fase++ : fase = 0;
 	}
-
+/*
 	//MIO
 	rgb[0] += 0.1; if(rgb[0] > 1.0) rgb[0]=1.0;
 	rgb[1] += 0.1; if(rgb[1] > 1.0) rgb[1]=1.0;
 	rgb[2] = 0.0;
-
+*/
 	paint.r = rgb[0];
 	paint.g = rgb[1];
 	paint.b = rgb[2];
@@ -164,8 +173,8 @@ void mouseMotionEvent(int x, int y) {
 	posSole_y = yPos_;
 
 	// Sistema particellare
-	Color rgb = computeRainbow();
-	//Color rgb = { 1.0, 1.0, 0.0 };
+	//Color rgb = computeRainbow();
+	Color rgb = { 1.0, 1.0, 0.0 };   // Imposto il colore giallo
 	for (int i = 0; i < 10; i++) {
 
 		PARTICLE p;
@@ -272,16 +281,42 @@ void disegna_sole(int nTriangles, Point* Sole) {
 	int vertici = 3 * nTriangles;
 	OutSide = new Point[vertici];
 
-	//vec4 col_top_sole = { 1.0, 1.0, 1.0, 1.0 };
 	vec4 col_top_sole = { 1.0, 1.0, 0.2, 1.0 };
 	//vec4 col_top_sole = { 0.5, 0.5, 0.5, 0.5 };   // PER MODIFICARE LA STRUTTURA DEL SOLE
 	vec4 col_bottom_sole = { 1.0, 0.8627, 0.0, 1.0 };
 	disegna_cerchio(nTriangles, 1, col_top_sole, col_bottom_sole, Sole);
 	
 	col_top_sole = { 1.0, 1.0, 1.0, 0.0 };
-	//col_bottom_sole = { 1.0, 0.8627, 0.0, 1.0 };
 	col_bottom_sole = { 1.0, 1.0, 0.6, 1.0 };
-	//col_bottom_sole = { 0.9, 1.0, 1.0, 1.0 };
+	disegna_cerchio(nTriangles, 1, col_top_sole, col_bottom_sole, OutSide);
+
+	cont = 3 * nTriangles;
+	for (i = 0; i < 3 * nTriangles; i++) {
+
+		Sole[cont + i].x = OutSide[i].x;
+		Sole[cont + i].y = OutSide[i].y;
+		Sole[cont + i].z = OutSide[i].z;
+		Sole[cont + i].r = OutSide[i].r;
+		Sole[cont + i].g = OutSide[i].g;
+		Sole[cont + i].b = OutSide[i].b;
+		Sole[cont + i].a = OutSide[i].a;
+	}
+}
+
+// Animazione cielo
+void disegna_luce(int nTriangles, Point* Sole) {
+
+	int i, cont;
+	Point* OutSide;
+	int vertici = 3 * nTriangles;
+	OutSide = new Point[vertici];
+
+	vec4 col_top_sole = { 1.0, 1.0, 0.2, 1.0 };
+	vec4 col_bottom_sole = { 1.0, 0.8627, 0.0, 1.0 };
+	disegna_cerchio(nTriangles, 1, col_top_sole, col_bottom_sole, Sole);
+	
+	col_top_sole = { 1.0, 1.0, 1.0, 0.0 };
+	col_bottom_sole = { 0.1, 0.1, 0.1, 0.05 };
 	disegna_cerchio(nTriangles, 1, col_top_sole, col_bottom_sole, OutSide);
 
 	cont = 3 * nTriangles;
@@ -362,6 +397,20 @@ void init(void) {
 		posAlone_y[i] = rand() % height;
 	}
 
+	// Animazione cielo
+	disegna_luce(nTriangles_sole, Luci);
+	glGenVertexArrays(1, &VAO_ANIMAZIONECIELO);
+	glBindVertexArray(VAO_ANIMAZIONECIELO);
+	glGenBuffers(1, &VBO_AC);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_AC);
+	glBufferData(GL_ARRAY_BUFFER, vertices_sole * sizeof(Point), &Luci[0], GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 7 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+	//Scollego il VAO
+	glBindVertexArray(0);
+
 
 	//Definisco il colore che verrà assegnato allo schermo
 	glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -437,7 +486,6 @@ void drawScene(void) {
 	// Disegna sole
 	Model = mat4(1.0);
 	Model = translate(Model, vec3(float(posSole_x), float(posSole_y), 0.0));
-	//Model = scale(Model, vec3(30.0, 30.0, 1.0));
 	Model = scale(Model, vec3(25.0, 25.0, 1.0));
 	glUniformMatrix4fv(MatModel, 1, GL_FALSE, value_ptr(Model));
 	glBindVertexArray(VAO_SOLE);
@@ -448,7 +496,6 @@ void drawScene(void) {
 	//Disegna Alone del sole
 	Model = mat4(1.0);
 	Model = translate(Model, vec3(float(posSole_x), float(posSole_y), 0.0));
-	//Model = scale(Model, vec3(80.0, 80.0, 1.0));
 	Model = scale(Model, vec3(50.0, 50.0, 1.0));
 	glUniformMatrix4fv(MatModel, 1, GL_FALSE, value_ptr(Model));
 	glBindVertexArray(VAO_SOLE);
@@ -470,6 +517,33 @@ void drawScene(void) {
 		}
 	}
 	glBindVertexArray(0);   // Alla fine delle copie, scollego il VAO
+
+
+	// Animazione cielo
+
+	if (delay <= 0) {
+
+		for (int i = 0; i < num_luci; i++) {
+
+			posLuce_x[i] = rand() % width;
+			posLuce_y[i] = rand() % height;
+		}
+
+		delay = num_delay;
+	}
+	else
+		delay--;
+
+	glBindVertexArray(VAO_ANIMAZIONECIELO);
+	for (int i = 0; i < num_luci; i++) {
+
+		Model = mat4(1.0);
+		Model = translate(Model, vec3(float(posLuce_x[i]), float(posLuce_y[i]), 0.0));
+		Model = scale(Model, vec3(500.0, 500.0, 1.0));
+		glUniformMatrix4fv(MatModel, 1, GL_FALSE, value_ptr(Model));
+		glDrawArrays(GL_TRIANGLES, vertices_sole / 2, vertices_sole / 2);
+	}
+	glBindVertexArray(0);
 
 
 	glutSwapBuffers();
