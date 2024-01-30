@@ -39,6 +39,7 @@ Point* Cielo = new Point[vertices_Cielo];
 int nTriangles_sole = 30;
 int vertices_sole = 3 * 2 * nTriangles_sole;
 Point* Sole = new Point[vertices_sole];
+int intorno = 30;   // Facilita il riconoscere dove si trova il sole
 
 // Posizione del sole
 int posSole_x = 0;   // [0, width]
@@ -73,7 +74,6 @@ Point* Punti = new Point[nPoint];
 
 int num_aloni = 10;
 bool alone_inglobato[10] = {};	// Indica se l'alone e' stato inglobato (quindi non e' piu' visibile)
-int intorno = 30;   			// Facilita il riconoscere che ci si trova sopra un alone (con il mouse)
 
 // Posizione degli aloni
 //  - An empty initializer can be used to initialize an array
@@ -169,6 +169,18 @@ void mouseMotionEvent(int x, int y) {
 		    yPos_ > posAlone_y[i] - intorno) {
 
 			alone_inglobato[i] = true;
+		}
+	}
+
+	// Controllo se il sole sta toccando il bordo dello schermo
+	if (xPos_ < 0 + intorno ||
+	    xPos_ > width - intorno ||
+	    yPos_ < 0 + intorno ||
+	    yPos_ > height - intorno) {
+
+		for (int i = 0; i < num_aloni; i++) {
+
+			alone_inglobato[i] = false;
 		}
 	}
 
