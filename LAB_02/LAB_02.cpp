@@ -361,6 +361,7 @@ void disegna_sole(int nTriangles, Point* Sole) {
 }
 
 // Animazione cielo
+//  - Ho copiato la funzione disegna_sole
 void disegna_luce(int nTriangles, Point* Sole) {
 
 	int i, cont;
@@ -599,8 +600,9 @@ void drawScene(void) {
 
 	// Animazione cielo
 
-	if (delay <= 0) {
+	if (delay <= 0) {   // Se e' passato del tempo
 
+		// Cambio la posizione dei chiarori nel cielo
 		for (int i = 0; i < num_luci; i++) {
 
 			posLuce_x[i] = rand() % width;		// Numero casuale nell'intervallo [0, width]
