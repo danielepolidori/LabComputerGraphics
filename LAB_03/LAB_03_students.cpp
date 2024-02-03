@@ -913,42 +913,52 @@ void loadObjFile(string file_path, Mesh* mesh)
 		std::getchar();
 		exit(EXIT_FAILURE);
 	}
+
 	// tmp data structures
 	vector<GLuint> vertexIndices, normalIndices, uvIndices;
-	vector<glm::vec3> tmp_vertices, tmp_normals;
+	vector<glm::vec3> tmp_vertices, tmp_normals;   /// Sono vector of vec3: [[x1, y1, z1], [x2, y2, z2], ...]
 	vector<glm::vec2> tmp_uvs;
 
-	char lineHeader[128];
-	while (fscanf(file, "%s", lineHeader) != EOF) {
-		if (strcmp(lineHeader, "v") == 0) {
+	char lineHeader[128];   /// Conterra' una stringa alla volta del file .obj
+	while (fscanf(file, "%s", lineHeader) != EOF) {   /// Leggo una stringa nel file .obj e la metto in lineHeader
+
+		if (strcmp(lineHeader, "v") == 0) {   /// Se lineHeader == "v"   /// Vertex
+
 			glm::vec3 vertex;
-			fscanf(file, " %f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
-			tmp_vertices.push_back(vertex);
+			fscanf(file, " %f %f %f\n", &vertex.x, &vertex.y, &vertex.z);   /// Leggo 3 float e li metto nelle variabili x, y e z
+			tmp_vertices.push_back(vertex);					/// push_back: Adds a new element at the end of the vector
 		}
-		else if (strcmp(lineHeader, "vn") == 0) {
+		else if (strcmp(lineHeader, "vn") == 0) {			 /// Vertex Normal
+
 			glm::vec3 normal;
 			fscanf(file, " %f %f %f\n", &normal.x, &normal.y, &normal.z);
 			tmp_normals.push_back(normal);
 		}
-		else if (strcmp(lineHeader, "vt") == 0) {
+		else if (strcmp(lineHeader, "vt") == 0) {			 /// Vertex Texture (?)
+
 			glm::vec2 uv;
 			fscanf(file, " %f %f\n", &uv.x, &uv.y);
 			uv.y = 1 - uv.y;
 			tmp_uvs.push_back(uv);
 		}
-		else if (strcmp(lineHeader, "f") == 0) {
-			GLuint v_a, v_b, v_c; // index in position array
-			GLuint n_a, n_b, n_c; // index in normal array
-			GLuint t_a, t_b, t_c; // index in UV array
+		else if (strcmp(lineHeader, "f") == 0) {			 /// Face (indicata dai 3 vertici, opzionalmente anche da normali e texture)
+
+			GLuint v_a, v_b, v_c;   // index in position array
+			GLuint n_a, n_b, n_c;   // index in normal array
+			GLuint t_a, t_b, t_c;   // index in UV array
 
 			fscanf(file, "%s", lineHeader);
-			if (strstr(lineHeader, "//")) { // case: v//n v//n v//n
+
+			/// strstr: Returns a pointer to the first occurrence of str2 in str1, or a null pointer if str2 is not part of str1.
+			if (strstr(lineHeader, "//")) {				// case: v//n v//n v//n
+
 				sscanf(lineHeader, "%d//%d", &v_a, &n_a);
 				fscanf(file, "%d//%d %d//%d\n", &v_b, &n_b, &v_c, &n_c);
 				n_a--, n_b--, n_c--;
 				normalIndices.push_back(n_a); normalIndices.push_back(n_b); normalIndices.push_back(n_c);
 			}
-			else if (strstr(lineHeader, "/")) {// case: v/t/n v/t/n v/t/n
+			else if (strstr(lineHeader, "/")) {			// case: v/t/n v/t/n v/t/n
+
 				sscanf(lineHeader, "%d/%d/%d", &v_a, &t_a, &n_a);
 				fscanf(file, "%d/%d/%d %d/%d/%d\n", &v_b, &t_b, &n_b, &v_c, &t_c, &n_c);
 				n_a--, n_b--, n_c--;
@@ -956,10 +966,13 @@ void loadObjFile(string file_path, Mesh* mesh)
 				normalIndices.push_back(n_a); normalIndices.push_back(n_b); normalIndices.push_back(n_c);
 				uvIndices.push_back(t_a); uvIndices.push_back(t_b); uvIndices.push_back(t_c);
 			}
-			else {// case: v v v
+			else {							// case: v v v
+
 				sscanf(lineHeader, "%d", &v_a);
 				fscanf(file, "%d %d\n", &v_b, &v_c);
 			}
+
+			/// Carico i vertici, in vertexIndices, a triplette (ognuna corrispondente a una faccia)
 			v_a--; v_b--; v_c--;
 			vertexIndices.push_back(v_a); vertexIndices.push_back(v_b); vertexIndices.push_back(v_c);
 		}
@@ -968,17 +981,24 @@ void loadObjFile(string file_path, Mesh* mesh)
 
 	// If normals and uvs are not loaded, we calculate normals for face
 	if (tmp_normals.size() == 0) {
-		tmp_normals.resize(vertexIndices.size() / 3, glm::vec3(0.0, 0.0, 0.0));
+
+		tmp_normals.resize(vertexIndices.size() / 3, glm::vec3(0.0, 0.0, 0.0));   /// vertex size / 3 = numero di facce
+
 		// normal of each face saved 1 time PER FACE!
 		for (int i = 0; i < vertexIndices.size(); i += 3)
 		{
+			/// Sono i 3 vertici di una faccia
 			GLushort ia = vertexIndices[i];
 			GLushort ib = vertexIndices[i + 1];
 			GLushort ic = vertexIndices[i + 2];
+
+			/// Calcolo la normale alla faccia
 			glm::vec3 normal = glm::normalize(glm::cross(
 				glm::vec3(tmp_vertices[ib]) - glm::vec3(tmp_vertices[ia]),
 				glm::vec3(tmp_vertices[ic]) - glm::vec3(tmp_vertices[ia])));
+
 			tmp_normals[i / 3] = normal;
+
 			//Put an index to the normal for all 3 vertex of the face
 			normalIndices.push_back(i / 3);
 			normalIndices.push_back(i / 3);
