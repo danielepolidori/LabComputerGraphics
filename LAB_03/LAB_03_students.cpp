@@ -973,19 +973,23 @@ void loadObjFile(string file_path, Mesh* mesh)
 			}
 
 			/// Carico i vertici, in vertexIndices, a triplette (ognuna corrispondente a una faccia)
+			///  - vertexIndices: [v_a1, v_b1, v_c1, v_a2, v_b2, v_c2, v_a3, ...]
 			v_a--; v_b--; v_c--;
 			vertexIndices.push_back(v_a); vertexIndices.push_back(v_b); vertexIndices.push_back(v_c);
 		}
 	}
 	fclose(file);
 
-	// If normals and uvs are not loaded, we calculate normals for face
+	// If normals and uvs are not loaded, we calculate normals for face /// o le normali ai vertici
 	if (tmp_normals.size() == 0) {
 
+		/// FACCE
+
+		/// Avremo 1/3 di normali alle facce rispetto al numero di vertici
 		tmp_normals.resize(vertexIndices.size() / 3, glm::vec3(0.0, 0.0, 0.0));   /// vertex size / 3 = numero di facce
 
 		// normal of each face saved 1 time PER FACE!
-		for (int i = 0; i < vertexIndices.size(); i += 3)
+		for (int i = 0; i < vertexIndices.size(); i += 3)   /// Scorro le facce
 		{
 			/// Sono i 3 vertici di una faccia
 			GLushort ia = vertexIndices[i];
@@ -1004,6 +1008,72 @@ void loadObjFile(string file_path, Mesh* mesh)
 			normalIndices.push_back(i / 3);
 			normalIndices.push_back(i / 3);
 		}
+
+
+
+		//if (file_path == "Mesh/bunny.obj") {   /// if --> VA CONTROLLATA LA SCELTA UTENTE (?)
+			/// VERTICI
+
+			/// Le normali ai vertici saranno lo stesso numero dei vertici
+			vector<glm::vec3> tmp_normals_vertici;   /// Normali ai vertici
+			tmp_normals_vertici.resize(vertexIndices.size(), glm::vec3(0.0, 0.0, 0.0));   // SERVE ???
+
+			int num_facceCondivise = 0;
+			glm::vec3 somma_normaliFacce = glm::vec3(0.0, 0.0, 0.0);
+
+			/// tmp_vertices.size() = Numero di vertici
+			cout << file_path << " [normali ai vertici]" << endl;
+			///printf(" [%li]\n", tmp_vertices.size());
+
+			for (int vertice_attuale = 1; vertice_attuale <= tmp_vertices.size(); vertice_attuale++) {   /// Scorro tutti i vertici
+
+				/// Sommo le normali alle facce che condividono il vertice attualmente considerato
+				for (int i = 0; i < vertexIndices.size(); i += 3) {   /// Scorro le facce
+
+					/// Sono i 3 vertici di una faccia
+					GLushort ia = vertexIndices[i];
+					GLushort ib = vertexIndices[i + 1];
+					GLushort ic = vertexIndices[i + 2];
+
+					if (ia == vertice_attuale ||
+					    ib == vertice_attuale ||
+					    ic == vertice_attuale) {   /// Se questa faccia condivide il vertice che sto considerando
+
+						somma_normaliFacce += tmp_normals[i / 3];
+						num_facceCondivise++;
+					}
+				}
+
+				/// La normale al vertice viene salvata in posizione 'vertice_attuale - 1'
+				tmp_normals_vertici.push_back(somma_normaliFacce / glm::vec3(num_facceCondivise));   /// Formula del calcolo della normale al vertice
+
+				/// Azzero i contatori
+				num_facceCondivise = 0;
+				somma_normaliFacce = glm::vec3(0.0, 0.0, 0.0);
+			}
+
+			tmp_normals = tmp_normals_vertici;
+
+			/*--------
+
+			Esempio, nel file .obj abbiamo la prima riga:
+
+			  "f 294 311 246"
+
+			  Dal momento che in vertexIndeces vengono salvati i vertici decrementati di uno, abbiamo:
+
+			   vertexIndices: [293, 310, 245, ...]
+
+			  Avendo calcolato le normali ai vertici in ordine crescente
+			  - quindi, la normale al vertice in 1 (salvato in posizione 0) viene messa in posizione 0,
+			    e ancora, la normale al vertice in 294 (salvato in posizione 293) viene messa in posizione 293 -,
+			  allora abbiamo i valori decrementati di 1 (come gia' sono in vertexIndices):
+
+			   normalIndices: [293, 310, 245, ...]
+
+			----------*///
+			normalIndices = vertexIndices;
+		//}
 	}
 
 	// We prepare the data for glDrawArrays calls, this is a simple but non optimal way of storing mesh data.
@@ -1017,6 +1087,7 @@ void loadObjFile(string file_path, Mesh* mesh)
 		mesh->normals.push_back(tmp_normals[normalIndices[i]]);
 	}
 }
+
 void drawAxisAndGrid()
 {
 	glUseProgram(shaders_IDs[Grid.shading]);
