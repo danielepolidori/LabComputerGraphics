@@ -83,19 +83,13 @@ typedef enum { // used also as index, don't modify order
 } ShadingType;
 
 /// Gestisco la scelta da menu dello shading
-/***
- 0: Flat shading
- 1: Gouraud shading
- 2: Phong shading
- ***/
-///int shadingOption = 0;   /// default: flat shading
 typedef enum {
 	FLAT_SHADING,
 	GOURAUD_SHADING,
 	PHONG_SHADING
 } ShadingOption;
 enum {
-	FLAT_MODE,
+	FLAT_MODE,	/// default
 	GOURAUD_MODE,
 	PHONG_MODE
 } ShadingMode;
@@ -278,6 +272,7 @@ void init_mesh() {
 	obj4.material = MaterialType::RED_PLASTIC; // NO_MATERIAL;
 
 	///obj4.shading = ShadingType::PHONG; // GOURAUD; // TOON;
+	/// Lo shading viene scelto dal menu
 	switch(ShadingMode) {
 
 		case FLAT_MODE:
@@ -292,6 +287,16 @@ void init_mesh() {
 
 	obj4.name = "Bunny";
 	obj4.M = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0., 0., -2.)), glm::vec3(2., 2., 2.));
+
+	/// Se l'oggetto e' gia' presente, lo rimuovo (significa che e' stato modificato lo shading)
+	for (int i = 0; i < objects.size(); i++) {
+
+		if (objects[i].name == "Bunny") {
+
+			objects.erase(objects.begin() + i);
+		}
+	}
+
 	objects.push_back(obj4);
 }
 
@@ -850,8 +855,7 @@ void shading_menu_function(int option) {
 			break;
 	}
 
-	init_mesh();
-	///glutPostRedisplay(); /// SERVE ???
+	init_mesh();   /// Disegno nuovamente l'oggetto
 }
 
 void buildOpenGLMenu()
