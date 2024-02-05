@@ -82,6 +82,24 @@ typedef enum { // used also as index, don't modify order
 	WAVE
 } ShadingType;
 
+/// Gestisco la scelta da menu dello shading
+/***
+ 0: Flat shading
+ 1: Gouraud shading
+ 2: Phong shading
+ ***/
+///int shadingOption = 0;   /// default: flat shading
+typedef enum {
+	FLAT_SHADING,
+	GOURAUD_SHADING,
+	PHONG_SHADING
+} ShadingOption;
+enum {
+	FLAT_MODE,
+	GOURAUD_MODE,
+	PHONG_MODE
+} ShadingMode;
+
 typedef struct {
 	Mesh mesh;
 	MaterialType material;
@@ -258,8 +276,20 @@ void init_mesh() {
 	Object obj4 = {};
 	obj4.mesh = sphereS;
 	obj4.material = MaterialType::RED_PLASTIC; // NO_MATERIAL;
-	obj4.shading = ShadingType::PHONG; // GOURAUD; // TOON;
-	///obj4.shading = ShadingType::GOURAUD;
+
+	///obj4.shading = ShadingType::PHONG; // GOURAUD; // TOON;
+	switch(ShadingMode) {
+
+		case FLAT_MODE:
+		case PHONG_MODE:
+			obj4.shading = ShadingType::PHONG;
+			break;
+
+		case GOURAUD_MODE:
+			obj4.shading = ShadingType::GOURAUD;
+			break;
+	}
+
 	obj4.name = "Bunny";
 	obj4.M = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0., 0., -2.)), glm::vec3(2., 2., 2.));
 	objects.push_back(obj4);
@@ -765,20 +795,32 @@ void main_menu_func(int option)
 {
 	switch (option)
 	{
-	case MenuOption::WIRE_FRAME: glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		break;
-	case MenuOption::FACE_FILL: glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		break;
-	case MenuOption::CULLING_ON: glEnable(GL_CULL_FACE);
-		break;
-	case MenuOption::CULLING_OFF: glDisable(GL_CULL_FACE);
-		break;
-	case MenuOption::CHANGE_TO_OCS: TransformMode = OCS;
-		break;
-	case MenuOption::CHANGE_TO_WCS: TransformMode = WCS;
-		break;
-	default:
-		break;
+		case MenuOption::WIRE_FRAME:
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			break;
+
+		case MenuOption::FACE_FILL:
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			break;
+
+		case MenuOption::CULLING_ON:
+			glEnable(GL_CULL_FACE);
+			break;
+
+		case MenuOption::CULLING_OFF:
+			glDisable(GL_CULL_FACE);
+			break;
+
+		case MenuOption::CHANGE_TO_OCS:
+			TransformMode = OCS;
+			break;
+
+		case MenuOption::CHANGE_TO_WCS:
+			TransformMode = WCS;
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -787,20 +829,54 @@ void material_menu_function(int option)
 	objects[selected_obj].material = (MaterialType)option;
 }
 
+/// Gestisce lo shading da menu (punto 1a)
+void shading_menu_function(int option) {
+
+	switch(option) {
+
+		case ShadingOption::FLAT_SHADING:
+			ShadingMode = FLAT_MODE;
+			break;
+
+		case ShadingOption::GOURAUD_SHADING:
+			ShadingMode = GOURAUD_MODE;
+			break;
+
+		case ShadingOption::PHONG_SHADING:
+			ShadingMode = PHONG_MODE;
+			break;
+
+		default:
+			break;
+	}
+
+	init_mesh();
+	///glutPostRedisplay(); /// SERVE ???
+}
+
 void buildOpenGLMenu()
 {
+	/// Sub-menu Material
 	int materialSubMenu = glutCreateMenu(material_menu_function);
-
 	glutAddMenuEntry(materials[MaterialType::RED_PLASTIC].name.c_str(), MaterialType::RED_PLASTIC);
 	glutAddMenuEntry(materials[MaterialType::EMERALD].name.c_str(), MaterialType::EMERALD);
 	glutAddMenuEntry(materials[MaterialType::BRASS].name.c_str(), MaterialType::BRASS);
 	glutAddMenuEntry(materials[MaterialType::SLATE].name.c_str(), MaterialType::SLATE);
 
+	/// Sub-menu Shading
+	int shadingSubMenu = glutCreateMenu(shading_menu_function);
+	glutAddMenuEntry("Flat", ShadingOption::FLAT_SHADING);
+	glutAddMenuEntry("Gouraud", ShadingOption::GOURAUD_SHADING);
+	glutAddMenuEntry("Phong", ShadingOption::PHONG_SHADING);
+
+
+	/// Menu principale
 	glutCreateMenu(main_menu_func); // richiama main_menu_func() alla selezione di una voce menu
 	glutAddMenuEntry("Opzioni", -1); //-1 significa che non si vuole gestire questa riga
 	glutAddMenuEntry("", -1);
 	glutAddMenuEntry("Wireframe", MenuOption::WIRE_FRAME);
 	glutAddMenuEntry("Face fill", MenuOption::FACE_FILL);
+	glutAddSubMenu("Shading", shadingSubMenu);
 	glutAddMenuEntry("Culling: ON", MenuOption::CULLING_ON);
 	glutAddMenuEntry("Culling: OFF", MenuOption::CULLING_OFF);
 	glutAddSubMenu("Material", materialSubMenu);
@@ -1012,7 +1088,7 @@ void loadObjFile(string file_path, Mesh* mesh)
 
 
 
-		//if (file_path == "Mesh/bunny.obj") {   /// if --> VA CONTROLLATA LA SCELTA UTENTE (?)
+		if (ShadingMode != FLAT_MODE) {
 			/// VERTICI
 
 			/// Le normali ai vertici saranno lo stesso numero dei vertici
@@ -1072,7 +1148,7 @@ void loadObjFile(string file_path, Mesh* mesh)
 
 			----------*///
 			normalIndices = vertexIndices;
-		//}
+		}
 	}
 
 	// We prepare the data for glDrawArrays calls, this is a simple but non optimal way of storing mesh data.
