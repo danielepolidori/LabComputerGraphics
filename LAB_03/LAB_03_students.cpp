@@ -62,6 +62,7 @@ typedef enum {
 	EMERALD,
 	BRASS,
 	SLATE,
+	MY_MATERIAL,   /// Creo un mio materiale (punto 1b)
 	NO_MATERIAL
 } MaterialType;
 
@@ -130,7 +131,8 @@ static int selected_obj = 0;
 glm::vec3 red_plastic_ambient = { 0.1, 0.0, 0.0 }, red_plastic_diffuse = { 0.6, 0.1, 0.1 }, red_plastic_specular = { 0.7, 0.6, 0.6 }; GLfloat red_plastic_shininess = 32.0f;
 glm::vec3 brass_ambient = { 0.1, 0.06, 0.015 }, brass_diffuse = { 0.78, 0.57, 0.11 }, brass_specular = { 0.99, 0.91, 0.81 }; GLfloat brass_shininess = 27.8f;
 glm::vec3 emerald_ambient = { 0.0215, 0.04745, 0.0215 }, emerald_diffuse = { 0.07568, 0.61424, 0.07568 }, emerald_specular = { 0.633, 0.727811, 0.633 }; GLfloat emerald_shininess = 78.8f;
-glm::vec3 slate_ambient = { 0.02, 0.02, 0.02 }, slate_diffuse = { 0.1, 0.1, 0.1 }, slate_specular{ 0.4, 0.4, 0.4 }; GLfloat slate_shininess = 1.78125f;
+glm::vec3 slate_ambient = { 0.02, 0.02, 0.02 }, slate_diffuse = { 0.1, 0.1, 0.1 }, slate_specular = { 0.4, 0.4, 0.4 }; GLfloat slate_shininess = 1.78125f;
+glm::vec3 myMaterial_ambient = { 0.02, 0.02, 0.12 }, myMaterial_diffuse = { 0.41, 0.1, 0.81 }, myMaterial_specular = { 0.14, 0.54, 0.24 }; GLfloat myMaterial_shininess = 100.0f;   /// Creo un mio materiale (punto 1b)
 
 typedef struct {
 	glm::vec3 position;
@@ -466,7 +468,8 @@ void init() {
 	light.power = 1.f;
 
 	// Materials setup
-	materials.resize(5);
+	///materials.resize(5);
+	materials.resize(6);
 	materials[MaterialType::RED_PLASTIC].name = "Red Plastic";
 	materials[MaterialType::RED_PLASTIC].ambient = red_plastic_ambient;
 	materials[MaterialType::RED_PLASTIC].diffuse = red_plastic_diffuse;
@@ -490,6 +493,13 @@ void init() {
 	materials[MaterialType::SLATE].diffuse = slate_diffuse;
 	materials[MaterialType::SLATE].specular = slate_specular;
 	materials[MaterialType::SLATE].shininess = slate_shininess;
+
+	/// Creo un mio materiale (punto 1b)
+	materials[MaterialType::MY_MATERIAL].name = "My Material";
+	materials[MaterialType::MY_MATERIAL].ambient = myMaterial_ambient;
+	materials[MaterialType::MY_MATERIAL].diffuse = myMaterial_diffuse;
+	materials[MaterialType::MY_MATERIAL].specular = myMaterial_specular;
+	materials[MaterialType::MY_MATERIAL].shininess = myMaterial_shininess;
 
 	materials[MaterialType::NO_MATERIAL].name = "NO_MATERIAL";
 	materials[MaterialType::NO_MATERIAL].ambient = glm::vec3(1, 1, 1);
@@ -844,36 +854,24 @@ void material_menu_function(int option)
 /// Gestisce lo shading da menu (punto 1a)
 void shading_menu_function(int option) {
 
-//	ShadingType shading_type;
-
 	switch(option) {
 
 		case ShadingOption::FLAT_SHADING:
 			ShadingMode = FLAT_MODE;
-//			shading_type = PHONG;
 			break;
 
 		case ShadingOption::GOURAUD_SHADING:
 			ShadingMode = GOURAUD_MODE;
-//			shading_type = GOURAUD;
 			break;
 
 		case ShadingOption::PHONG_SHADING:
 			ShadingMode = PHONG_MODE;
-//			shading_type = PHONG;
 			break;
 
 		default:
 			break;
 	}
 
-/*	for (int i = 0; i < objects.size(); i++) {
-
-		if (objects[i].name == "Bunny") {
-
-			objects[i].shading = shading_type;
-		}
-	}*/
 	init_mesh();   /// Disegno nuovamente l'oggetto
 }
 
@@ -885,6 +883,7 @@ void buildOpenGLMenu()
 	glutAddMenuEntry(materials[MaterialType::EMERALD].name.c_str(), MaterialType::EMERALD);
 	glutAddMenuEntry(materials[MaterialType::BRASS].name.c_str(), MaterialType::BRASS);
 	glutAddMenuEntry(materials[MaterialType::SLATE].name.c_str(), MaterialType::SLATE);
+	glutAddMenuEntry(materials[MaterialType::MY_MATERIAL].name.c_str(), MaterialType::MY_MATERIAL);
 
 	/// Sub-menu Shading
 	int shadingSubMenu = glutCreateMenu(shading_menu_function);
