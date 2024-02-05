@@ -259,6 +259,7 @@ void init_mesh() {
 	obj4.mesh = sphereS;
 	obj4.material = MaterialType::RED_PLASTIC; // NO_MATERIAL;
 	obj4.shading = ShadingType::PHONG; // GOURAUD; // TOON;
+	///obj4.shading = ShadingType::GOURAUD;
 	obj4.name = "Bunny";
 	obj4.M = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0., 0., -2.)), glm::vec3(2., 2., 2.));
 	objects.push_back(obj4);
@@ -1016,16 +1017,14 @@ void loadObjFile(string file_path, Mesh* mesh)
 
 			/// Le normali ai vertici saranno lo stesso numero dei vertici
 			vector<glm::vec3> tmp_normals_vertici;   /// Normali ai vertici
-			tmp_normals_vertici.resize(vertexIndices.size(), glm::vec3(0.0, 0.0, 0.0));   // SERVE ???
 
 			int num_facceCondivise = 0;
 			glm::vec3 somma_normaliFacce = glm::vec3(0.0, 0.0, 0.0);
 
 			/// tmp_vertices.size() = Numero di vertici
-			cout << file_path << " [normali ai vertici]" << endl;
-			///printf(" [%li]\n", tmp_vertices.size());
+			cout << endl << file_path << " [normali ai vertici]" << endl;
 
-			for (int vertice_attuale = 1; vertice_attuale <= tmp_vertices.size(); vertice_attuale++) {   /// Scorro tutti i vertici
+			for (int vertice_attuale = 0; vertice_attuale < tmp_vertices.size(); vertice_attuale++) {   /// Scorro tutti i vertici
 
 				/// Sommo le normali alle facce che condividono il vertice attualmente considerato
 				for (int i = 0; i < vertexIndices.size(); i += 3) {   /// Scorro le facce
