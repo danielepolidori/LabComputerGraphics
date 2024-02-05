@@ -289,11 +289,18 @@ void init_mesh() {
 	obj4.M = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0., 0., -2.)), glm::vec3(2., 2., 2.));
 
 	/// Se l'oggetto e' gia' presente, lo rimuovo (significa che e' stato modificato lo shading)
+	Object obj_tmp = {};
 	for (int i = 0; i < objects.size(); i++) {
 
 		if (objects[i].name == "Bunny") {
 
-			objects.erase(objects.begin() + i);
+			/// Il nuovo oggetto sara' uguale a quello gia' presente in scena (eccetto per la mesh e lo shading)
+			obj_tmp = objects[i];
+			obj_tmp.mesh = obj4.mesh;
+			obj_tmp.shading = obj4.shading;
+			obj4 = obj_tmp;
+
+			objects.erase(objects.begin() + i);   /// Rimuovo objects[i]
 		}
 	}
 
@@ -837,24 +844,36 @@ void material_menu_function(int option)
 /// Gestisce lo shading da menu (punto 1a)
 void shading_menu_function(int option) {
 
+//	ShadingType shading_type;
+
 	switch(option) {
 
 		case ShadingOption::FLAT_SHADING:
 			ShadingMode = FLAT_MODE;
+//			shading_type = PHONG;
 			break;
 
 		case ShadingOption::GOURAUD_SHADING:
 			ShadingMode = GOURAUD_MODE;
+//			shading_type = GOURAUD;
 			break;
 
 		case ShadingOption::PHONG_SHADING:
 			ShadingMode = PHONG_MODE;
+//			shading_type = PHONG;
 			break;
 
 		default:
 			break;
 	}
 
+/*	for (int i = 0; i < objects.size(); i++) {
+
+		if (objects[i].name == "Bunny") {
+
+			objects[i].shading = shading_type;
+		}
+	}*/
 	init_mesh();   /// Disegno nuovamente l'oggetto
 }
 
@@ -1093,6 +1112,7 @@ void loadObjFile(string file_path, Mesh* mesh)
 
 
 		if (ShadingMode != FLAT_MODE) {
+
 			/// VERTICI
 
 			/// Le normali ai vertici saranno lo stesso numero dei vertici
@@ -1102,7 +1122,7 @@ void loadObjFile(string file_path, Mesh* mesh)
 			glm::vec3 somma_normaliFacce = glm::vec3(0.0, 0.0, 0.0);
 
 			/// tmp_vertices.size() = Numero di vertici
-			cout << endl << file_path << " [normali ai vertici]" << endl;
+			cout << file_path << " [normali ai vertici]" << endl;
 
 			for (int vertice_attuale = 0; vertice_attuale < tmp_vertices.size(); vertice_attuale++) {   /// Scorro tutti i vertici
 
