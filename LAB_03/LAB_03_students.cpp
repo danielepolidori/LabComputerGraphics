@@ -257,7 +257,8 @@ void init_waving_plane() {
 	Object obj4 = {};
 	obj4.mesh = sphereS;
 	obj4.material = MaterialType::BRASS;
-	obj4.shading = ShadingType::GOURAUD;// WAVE;
+	///obj4.shading = ShadingType::GOURAUD;// WAVE;
+	obj4.shading = ShadingType::WAVE;
 	obj4.name = "Waves";
 	obj4.M = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0., -2., 0.)), glm::vec3(8., 8., 8.));
 	objects.push_back(obj4);
@@ -440,7 +441,35 @@ void initShader()
 	glUniform3f(light_uniforms[BLINN].light_color_pointer, light.color.r, light.color.g, light.color.b);
 	glUniform1f(light_uniforms[BLINN].light_power_pointer, light.power);
 
-	//Wave Shader Loading
+
+	//Wave Shader Loading /// (punto 1d)
+
+	shaders_IDs[WAVE] = createProgram(ShaderDir + "v_wave.glsl", ShaderDir + "f_passthrough.glsl");
+
+	//Otteniamo i puntatori alle variabili uniform per poterle utilizzare in seguito
+	base_unif.P_Matrix_pointer = glGetUniformLocation(shaders_IDs[WAVE], "P");
+	base_unif.V_Matrix_pointer = glGetUniformLocation(shaders_IDs[WAVE], "V");
+	base_unif.M_Matrix_pointer = glGetUniformLocation(shaders_IDs[WAVE], "M");
+	///base_unif.M_Matrix_pointer = glGetUniformLocation(shaders_IDs[WAVE], "ModelViewProjectionMatrix");
+	base_unif.time_delta_pointer = glGetUniformLocation(shaders_IDs[WAVE], "time");   /// La stringa corrisponde al nome della variabile nel vertex shader
+	base_uniforms[ShadingType::WAVE] = base_unif;
+	/*light_unif.material_ambient = glGetUniformLocation(shaders_IDs[WAVE], "material.ambient");
+	light_unif.material_diffuse = glGetUniformLocation(shaders_IDs[WAVE], "material.diffuse");
+	light_unif.material_specular = glGetUniformLocation(shaders_IDs[WAVE], "material.specular");
+	light_unif.material_shininess = glGetUniformLocation(shaders_IDs[WAVE], "material.shininess");
+	light_unif.light_position_pointer = glGetUniformLocation(shaders_IDs[WAVE], "light.position");
+	light_unif.light_color_pointer = glGetUniformLocation(shaders_IDs[WAVE], "light.color");
+	light_unif.light_power_pointer = glGetUniformLocation(shaders_IDs[WAVE], "light.power");
+	light_uniforms[ShadingType::WAVE] = light_unif;*/
+	//Rendiamo attivo lo shader
+	glUseProgram(shaders_IDs[WAVE]);
+	//Shader uniforms initialization
+	/*glUniform3f(light_uniforms[WAVE].light_position_pointer, light.position.x, light.position.y, light.position.z);
+	glUniform3f(light_uniforms[WAVE].light_color_pointer, light.color.r, light.color.g, light.color.b);
+	glUniform1f(light_uniforms[WAVE].light_power_pointer, light.power);*/
+///	glUniform4fv(glGetUniformLocation(shaders_IDs[WAVE], "Color"), 1, value_ptr(glm::vec4(1.0, 1.0, 1.0, 1.0)));
+	///
+
 
 	//TOON Shader Loading
 
