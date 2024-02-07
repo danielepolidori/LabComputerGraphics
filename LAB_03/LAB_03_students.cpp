@@ -87,12 +87,14 @@ typedef enum { // used also as index, don't modify order
 typedef enum {
 	FLAT_SHADING,
 	GOURAUD_SHADING,
-	PHONG_SHADING
+	PHONG_SHADING,
+	TOON_SHADING
 } ShadingOption;
 enum {
 	FLAT_MODE,	/// default
 	GOURAUD_MODE,
-	PHONG_MODE
+	PHONG_MODE,
+	TOON_MODE
 } ShadingMode;
 
 typedef struct {
@@ -277,9 +279,8 @@ void init_mesh() {
 	obj4.material = MaterialType::RED_PLASTIC; // NO_MATERIAL;
 
 	///obj4.shading = ShadingType::PHONG; // GOURAUD; // TOON;
-	obj4.shading = ShadingType::TOON;
 	/// Lo shading viene scelto dal menu
-	/*switch(ShadingMode) {
+	switch(ShadingMode) {
 
 		case FLAT_MODE:
 		case PHONG_MODE:
@@ -289,7 +290,14 @@ void init_mesh() {
 		case GOURAUD_MODE:
 			obj4.shading = ShadingType::GOURAUD;
 			break;
-	}*/
+
+		case TOON_MODE:
+			obj4.shading = ShadingType::TOON;
+			break;
+
+		default:
+			break;
+	}
 
 	obj4.name = "Bunny";
 	obj4.M = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0., 0., -2.)), glm::vec3(2., 2., 2.));
@@ -486,10 +494,6 @@ void initShader()
 	base_unif.M_Matrix_pointer = glGetUniformLocation(shaders_IDs[TOON], "M");
 	base_uniforms[ShadingType::TOON] = base_unif;
 
-	/*light_unif.material_ambient = glGetUniformLocation(shaders_IDs[TOON], "material.ambient");
-	light_unif.material_diffuse = glGetUniformLocation(shaders_IDs[TOON], "material.diffuse");
-	light_unif.material_specular = glGetUniformLocation(shaders_IDs[TOON], "material.specular");
-	light_unif.material_shininess = glGetUniformLocation(shaders_IDs[TOON], "material.shininess");*/
 	light_unif.light_position_pointer = glGetUniformLocation(shaders_IDs[TOON], "light.position");
 	light_unif.light_color_pointer = glGetUniformLocation(shaders_IDs[TOON], "light.color");
 	light_unif.light_power_pointer = glGetUniformLocation(shaders_IDs[TOON], "light.power");
@@ -949,6 +953,10 @@ void shading_menu_function(int option) {
 			ShadingMode = PHONG_MODE;
 			break;
 
+		case ShadingOption::TOON_SHADING:
+			ShadingMode = TOON_MODE;
+			break;
+
 		default:
 			break;
 	}
@@ -971,6 +979,7 @@ void buildOpenGLMenu()
 	glutAddMenuEntry("Flat", ShadingOption::FLAT_SHADING);
 	glutAddMenuEntry("Gouraud", ShadingOption::GOURAUD_SHADING);
 	glutAddMenuEntry("Phong", ShadingOption::PHONG_SHADING);
+	glutAddMenuEntry("Toon", ShadingOption::TOON_SHADING);
 
 
 	/// Menu principale
