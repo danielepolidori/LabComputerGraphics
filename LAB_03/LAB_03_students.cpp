@@ -277,8 +277,9 @@ void init_mesh() {
 	obj4.material = MaterialType::RED_PLASTIC; // NO_MATERIAL;
 
 	///obj4.shading = ShadingType::PHONG; // GOURAUD; // TOON;
+	obj4.shading = ShadingType::TOON;
 	/// Lo shading viene scelto dal menu
-	switch(ShadingMode) {
+	/*switch(ShadingMode) {
 
 		case FLAT_MODE:
 		case PHONG_MODE:
@@ -288,7 +289,7 @@ void init_mesh() {
 		case GOURAUD_MODE:
 			obj4.shading = ShadingType::GOURAUD;
 			break;
-	}
+	}*/
 
 	obj4.name = "Bunny";
 	obj4.M = glm::scale(glm::translate(glm::mat4(1), glm::vec3(0., 0., -2.)), glm::vec3(2., 2., 2.));
@@ -474,7 +475,34 @@ void initShader()
 	glUniform1f(light_uniforms[WAVE].light_power_pointer, light.power);
 
 
-	//TOON Shader Loading
+	//TOON Shader Loading /// (punto 1e)
+
+	shaders_IDs[TOON] = createProgram(ShaderDir + "v_toon.glsl", ShaderDir + "f_toon.glsl");
+
+	//Otteniamo i puntatori alle variabili uniform per poterle utilizzare in seguito
+
+	base_unif.P_Matrix_pointer = glGetUniformLocation(shaders_IDs[TOON], "P");
+	base_unif.V_Matrix_pointer = glGetUniformLocation(shaders_IDs[TOON], "V");
+	base_unif.M_Matrix_pointer = glGetUniformLocation(shaders_IDs[TOON], "M");
+	base_uniforms[ShadingType::TOON] = base_unif;
+
+	/*light_unif.material_ambient = glGetUniformLocation(shaders_IDs[TOON], "material.ambient");
+	light_unif.material_diffuse = glGetUniformLocation(shaders_IDs[TOON], "material.diffuse");
+	light_unif.material_specular = glGetUniformLocation(shaders_IDs[TOON], "material.specular");
+	light_unif.material_shininess = glGetUniformLocation(shaders_IDs[TOON], "material.shininess");*/
+	light_unif.light_position_pointer = glGetUniformLocation(shaders_IDs[TOON], "light.position");
+	light_unif.light_color_pointer = glGetUniformLocation(shaders_IDs[TOON], "light.color");
+	light_unif.light_power_pointer = glGetUniformLocation(shaders_IDs[TOON], "light.power");
+	light_uniforms[ShadingType::TOON] = light_unif;
+
+	//Rendiamo attivo lo shader
+	glUseProgram(shaders_IDs[TOON]);
+
+	//Shader uniforms initialization
+	glUniform3f(light_uniforms[TOON].light_position_pointer, light.position.x, light.position.y, light.position.z);
+	glUniform3f(light_uniforms[TOON].light_color_pointer, light.color.r, light.color.g, light.color.b);
+	glUniform1f(light_uniforms[TOON].light_power_pointer, light.power);
+
 
 	//Pass-Through Shader loading
 	shaders_IDs[PASS_THROUGH] = createProgram(ShaderDir + "v_passthrough.glsl", ShaderDir + "f_passthrough.glsl");
@@ -621,9 +649,12 @@ void drawScene() {
 			break;
 
 		case ShadingType::TOON:
+
 			glUseProgram(shaders_IDs[TOON]);
+
 			// Caricamento matrice trasformazione del modello
 			glUniformMatrix4fv(base_uniforms[TOON].M_Matrix_pointer, 1, GL_FALSE, value_ptr(objects[i].M));
+
 			break;
 
 		case ShadingType::PASS_THROUGH:
