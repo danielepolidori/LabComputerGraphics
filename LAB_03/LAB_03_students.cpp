@@ -1089,7 +1089,23 @@ void moveCameraDown()
 
 void modifyModelMatrix(glm::vec3 translation_vector, glm::vec3 rotation_vector, GLfloat angle, GLfloat scale_factor)
 {
+	glm::mat4 translation = glm::translate(glm::mat4(1.0), translation_vector);
+	glm::mat4 scale = glm::scale(glm::mat4(1.0), glm::vec3(scale_factor));
+	glm::mat4 rotation = glm::rotate(glm::mat4(1.0), angle, rotation_vector);
 
+	switch(TransformMode) {
+
+		case WCS:
+			objects[selected_obj].M = translation * rotation * scale * objects[selected_obj].M;
+			break;
+
+		case OCS:
+			objects[selected_obj].M = objects[selected_obj].M * scale * rotation * translation;
+			break;
+
+		default:
+			break;
+	}
 }
 
 void generate_and_load_buffers(bool generate, Mesh* mesh)
