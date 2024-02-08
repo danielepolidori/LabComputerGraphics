@@ -49,13 +49,10 @@ void main() {
 
 	// Lighting
 
-	vec3 ambient = light.power * material.ambient;
-
 	vec3 diffuse, specular;
 
 	vec4 eyePosition = V * M * vec4(vPosition, 1.0);
-	//vec4 eyeLightPos = V * vec4(light.position, 1.0);
-	vec4 eyeLightPos = vec4(light.position, 1.0);   // La luce arriva da un punto diverso dal punto luce (evito la moltiplicazione per V)
+	vec4 eyeLightPos = V * vec4(light.position, 1.0);
 
 	vec3 N = normalize(transpose(inverse(mat3(V * M))) * vNormal);
 	vec3 L = normalize(vec3(eyeLightPos - eyePosition));
@@ -64,12 +61,9 @@ void main() {
 
 	float diff = max(dot(L, N), 0.0);
 	float spec = pow(max(dot(N, H), 0.0), material.shininess);
-	//diffuse = light.power * light.color * diff * material.diffuse;
-	diffuse = diff * material.diffuse;
-	//specular =  light.power * light.color * spec * material.specular;
-	specular = spec * material.specular;
+	diffuse = light.power * light.color * diff * material.diffuse;
+	specular =  light.power * light.color * spec * material.specular;
 
-	//Color = diffuse + specular;
-	Color = ambient + diffuse + specular;
+	Color = diffuse + specular;
 }
 
