@@ -38,6 +38,11 @@ based on the OpenGL Shading Language (GLSL) specifications.
 #define CTRL_WHEEL_UP 19
 #define CTRL_WHEEL_DOWN 20
 
+/// Per il controllo di Pan oriz. e pan vert. camera (punto 2)
+// Wheel reports as button 3(scroll up) and button 4(scroll down)
+#define WHEEL_UP 3
+#define WHEEL_DOWN 4
+
 #define NUM_SHADERS 9
 
 using namespace std;
@@ -748,16 +753,29 @@ void refresh_monitor(int millis)
 void mouseClick(int button, int state, int x, int y)
 {
 	glutPostRedisplay();
+
 	int modifiers = glutGetModifiers();
 	if (modifiers == GLUT_ACTIVE_SHIFT) {
+
 		switch (button)
 		{
-		case SHIFT_WHEEL_UP: moveCameraUp(); break;
-		case SHIFT_WHEEL_DOWN: moveCameraDown(); break;
+			///case SHIFT_WHEEL_UP:
+			case WHEEL_UP:
+				moveCameraUp();
+				break;
+
+			///case SHIFT_WHEEL_DOWN:
+			case WHEEL_DOWN:
+				moveCameraDown();
+				break;
+
+			default:
+				break;
 		}
 		return;
 	}
 	if (modifiers == GLUT_ACTIVE_CTRL) {
+
 		switch (button)
 		{
 		case CTRL_WHEEL_UP: moveCameraRight(); break;
@@ -1035,6 +1053,7 @@ void moveCameraUp()
 	glm::vec3 direction = ViewSetup.target - ViewSetup.position;
 	glm::vec3 slide_vector = glm::normalize(glm::cross(direction, glm::vec3(ViewSetup.upVector)));
 	glm::vec3 upDirection = glm::cross(direction, slide_vector) * CAMERA_TRASLATION_SPEED;
+
 	ViewSetup.position -= glm::vec4(upDirection, 0.0);
 	ViewSetup.target -= glm::vec4(upDirection, 0.0);
 }
@@ -1044,6 +1063,7 @@ void moveCameraDown()
 	glm::vec4 direction = ViewSetup.target - ViewSetup.position;
 	glm::vec3 slide_vector = glm::normalize(glm::cross(glm::vec3(direction), glm::vec3(ViewSetup.upVector)));
 	glm::vec3 upDirection = glm::cross(glm::vec3(direction), slide_vector) * CAMERA_TRASLATION_SPEED;
+
 	ViewSetup.position += glm::vec4(upDirection, 0.0);
 	ViewSetup.target += glm::vec4(upDirection, 0.0);
 }
