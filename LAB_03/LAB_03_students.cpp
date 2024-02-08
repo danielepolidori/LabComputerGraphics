@@ -778,8 +778,15 @@ void mouseClick(int button, int state, int x, int y)
 
 		switch (button)
 		{
-		case CTRL_WHEEL_UP: moveCameraRight(); break;
-		case CTRL_WHEEL_DOWN: moveCameraLeft(); break;
+			///case CTRL_WHEEL_UP:
+			case WHEEL_UP:
+				moveCameraRight();
+				break;
+
+			///case CTRL_WHEEL_DOWN:
+			case WHEEL_DOWN:
+				moveCameraLeft();
+				break;
 		}
 		return;
 	}
@@ -1040,12 +1047,24 @@ void moveCameraBack()
 	ViewSetup.position -= direction * CAMERA_ZOOM_SPEED;
 }
 
+/// Pan oriz. camera (punto 2)
 void moveCameraLeft()
-{ 
+{
+	glm::vec3 direction = ViewSetup.target - ViewSetup.position;
+	glm::vec3 slide_vector = glm::cross(direction, glm::vec3(ViewSetup.upVector)) * CAMERA_TRASLATION_SPEED;
+
+	ViewSetup.position -= glm::vec4(slide_vector, 0.0);
+	ViewSetup.target -= glm::vec4(slide_vector, 0.0);
 }
 
+/// Pan oriz. camera (punto 2)
 void moveCameraRight()
 {
+	glm::vec3 direction = ViewSetup.target - ViewSetup.position;
+	glm::vec3 slide_vector = glm::cross(direction, glm::vec3(ViewSetup.upVector)) * CAMERA_TRASLATION_SPEED;
+
+	ViewSetup.position += glm::vec4(slide_vector, 0.0);
+	ViewSetup.target += glm::vec4(slide_vector, 0.0);
 }
 
 void moveCameraUp()
