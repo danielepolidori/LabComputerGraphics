@@ -961,7 +961,7 @@ void material_menu_function(int option)
 	objects[selected_obj].material = (MaterialType)option;
 }
 
-/// Gestisce lo shading da menu (punto 1a)
+/// Gestisce lo shading da menu (punti 1a e 1e)
 void shading_menu_function(int option) {
 
 	switch(option) {
@@ -999,7 +999,7 @@ void buildOpenGLMenu()
 	glutAddMenuEntry(materials[MaterialType::SLATE].name.c_str(), MaterialType::SLATE);
 	glutAddMenuEntry(materials[MaterialType::MY_MATERIAL].name.c_str(), MaterialType::MY_MATERIAL);
 
-	/// Sub-menu Shading
+	/// Sub-menu Shading (punti 1a e 1e)
 	int shadingSubMenu = glutCreateMenu(shading_menu_function);
 	glutAddMenuEntry("Flat", ShadingOption::FLAT_SHADING);
 	glutAddMenuEntry("Gouraud", ShadingOption::GOURAUD_SHADING);
@@ -1255,9 +1255,8 @@ void loadObjFile(string file_path, Mesh* mesh)
 
 
 
+		/// VERTICI (punto 1a)
 		if (ShadingMode != FLAT_MODE) {
-
-			/// VERTICI
 
 			/// Le normali ai vertici saranno lo stesso numero dei vertici
 			vector<glm::vec3> tmp_normals_vertici;   /// Normali ai vertici
@@ -1266,7 +1265,7 @@ void loadObjFile(string file_path, Mesh* mesh)
 			glm::vec3 somma_normaliFacce = glm::vec3(0.0, 0.0, 0.0);
 
 			/// tmp_vertices.size() = Numero di vertici
-			cout << file_path << " [normali ai vertici]" << endl;
+			cout << endl << "ShadingMode: " << ShadingMode << endl << file_path << " [normali ai vertici]\n";
 
 			for (int vertice_attuale = 0; vertice_attuale < tmp_vertices.size(); vertice_attuale++) {   /// Scorro tutti i vertici
 

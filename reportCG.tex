@@ -53,11 +53,12 @@ Ho aggiunto poi un'animazione al cielo. Per farlo, ho preso l'oggetto dell'alone
 
 \paragraph{Aloni.}
 Ho preso l'oggetto dell'alone del sole dal programma \texttt{2D\_Jumping\allowbreak\_Ball.cpp} e l'ho collegato a \texttt{VAO\_SOLE}. Ne ho modificato la scala (modificando l'input della funzione \texttt{scale()}, nella funzione \texttt{drawScene()}), in modo tale da renderlo una piccola fonte di luce. Ne ho modificato anche il colore (cambiando il valore della variabile \texttt{col\_bottom\_sole}, nella funzione \texttt{disegna\_sole()}), rendendolo più chiaro.\\
-All'inizio della partita, nella funzione \texttt{drawScene()}, creo contemporaneamente dieci aloni nel cielo, in posizioni casuali. Successivamente vengono mostrati soltanto quelli che ancora non sono stati inglobati.
+All'inizio della partita, nella funzione \texttt{drawScene()}, creo contemporaneamente dieci aloni nel cielo, in posizioni casuali. Successivamente vengono mostrati soltanto quelli che ancora non sono stati inglobati. Se il sole tocca un bordo dello schermo, vengono mostrati nuovamente tutti gli aloni.
 
 \paragraph{Sole.}
 Ho preso l'oggetto del sole (con il suo alone) dal programma \texttt{2D\allowbreak\_Jumping\_Ball.cpp} e l'ho collegato a \texttt{VAO\_SOLE}. Ne ho modificato la scala (modificando l'input della funzione \texttt{scale()}, nella funzione \texttt{drawScene()}), per renderlo leggermente più piccolo. Ne ho modificato anche il colore (cambiando il valore delle variabili \texttt{col\_top\_sole} e \texttt{col\_bottom\_sole}, nella funzione \texttt{disegna\_sole()}), rendendolo più chiaro.\\
 Infine, ho agganciato il sole al movimento del mouse: ho sostituito l'input della funzione \texttt{translate()} con delle variabili che memorizzano la posizione attuale del mouse (il loro valore viene continuamente aggiornato attraverso la funzione callback di OpenGL \texttt{glutPassiveMotionFunc()}).\\
+Quando un alone viene inglobato, l'alone del sole viene ingrandito, per mostrare il progresso nella dinamica di gioco. Se il sole tocca un bordo dello schermo, l'alone del sole torna alla sua dimensione iniziale.\\
 In caso di vittoria, l'alone del sole viene ingrandito progressivamente (senza mai fermarsi). Per realizzare questo effetto ho usato cinquanta chiamate ricorsive alla funzione \texttt{aumentaScala\_aloneSole()}, attraverso la funzione \texttt{glutTimerFunc()}, ciascuna delle quali applica un piccolo incremento alla scala dell'alone del sole.
 
 \paragraph{Sistemi Particellari.}
@@ -65,6 +66,32 @@ Ho preso l'oggetto del sistema particellare dal programma \texttt{2D\_PS.cpp} e 
 Come prima cosa, l'ho collegato al movimento del mouse (attraverso la funzione \texttt{glutPassiveMotionFunc()}) e ne ho cambiato il colore (impostando il giallo nel valore della variabile \texttt{rgb}, presente nella funzione).\\
 Inoltre, nella funzione \texttt{drawScene()}, ho creato, in ciascuna posizione degli aloni, un piccolo sistema particellare di colore arancione (indicato nel valore della variabile \texttt{rgb}, presente nella funzione). Tale sistema particellare viene mostrato soltanto nelle posizioni degli aloni che non sono stati ancora inglobati.\\
 Infine, ho utilizzato questo oggetto per segnalare visivamente un'azione negativa, quando essa viene compiuta dall'utente. Infatti, quando il sole tocca un bordo dello schermo, il cielo si riempie di un sistema particellare di colore rosso (indicato nel valore della variabile \texttt{rgb}, nella funzione \texttt{glutPassiveMotionFunc()}), diffuso uniformemente in tutta l'area dello schermo.
+
+
+\section{LAB-03}
+
+\paragraph{Punto 1a.}
+La scelta dello shading da applicare in scena è riferito solo all'oggetto \textit{Bunny} (\texttt{Mesh/bunny.obj}).\\
+Nella funzione \texttt{buildOpenGLMenu()}, ho creato un sottomenù, nel menu principale del programma, per consentire la modifica dello shading. Quando viene selezionato uno shading differente, viene invocata la funzione \texttt{init\_mesh()}, che sostituisce il vecchio oggetto (memorizzato nella variabile \texttt{objects}) con uno nuovo. Questo, se la scelta è diversa dal Flat shading, conterrà le normali ai vertici (anziché quelle alle facce), mentre per il resto rimarrà identico.\\
+Il calcolo delle normali ai vertici $\overrightarrow{Nv}$, viene eseguito nella funzione \texttt{loadObjFile()}. Cerco, per ciascun vertice \textit{i}, le \textit{n} facce che lo condividono, quindi applico la formula per il calcolo della normale al vertice:
+\[ \overrightarrow{Nv_i} = \frac{\sum_{k=1}^n \overrightarrow{Nf_{i,k}}}{n} \]
+con $\overrightarrow{Nf_{i,k}}$ la normale alla k-esima faccia condivisa dal vertice \textit{i}.\\
+Nella variabile \texttt{vertexIndices} vengono memorizzati gli indici dei vertici (decrementati di 1), ordinati seguendo le dichiarazioni delle facce nel file (con estensione \texttt{.obj}) del rispettivo oggetto. Dal momento che le normali ai vertici vengono calcolate e memorizzate seguendo i vertici in ordine crescente, l'indice di ciascuna di esse corrisponde a quello del rispettivo vertice (già decrementato di 1). La variabile \texttt{normalIndices} viene quindi riempita con i valori presenti in \texttt{vertexIndices}.
+
+\paragraph{Punto 1b.}
+Ho definito i valori di un nuovo materiale, che ho chiamato \textit{My Material}. Poi, nella funzione \texttt{init()}, l'ho aggiunto nella variabile \texttt{materials}. Infine, ho aggiunto la rispettiva voce nel sottomenù dei materiali, per renderlo selezionabile.
+
+\paragraph{Punto 1d.}
+Ho creato il vertex shader \texttt{Shaders/v\_wave.glsl}, per l'oggetto \textit{Wave}. Questo prende in input i vertici e le normali (nelle variabili \texttt{vPosition} e \texttt{vNormal}). Dall'applicazione gli vengono passati (nelle funzioni \texttt{initShader()} e \texttt{drawScene()}) i valori delle variabili \texttt{time}, \texttt{P}, \texttt{V}, \texttt{M}, \texttt{light} e \texttt{material}. In output viene restituita la variabile \texttt{Color}.\\
+L'illuminazione viene gestita all'interno del vertex shader. Il fragment shader che gli ho associato (nella funzione \texttt{initShader()}) è quello relativo al Gouraud shading (\texttt{Shaders/\allowbreak f\_gouraud.glsl}), che semplicemente prende in input \texttt{Color} e lo restituisce come \texttt{FragColor}.\\
+Per una resa migliore del movimento ondoso, ho  aumentato il valore in input alla funzione \texttt{refresh\_monitor()}, nella funzione \texttt{main()}: in questo modo il moto viene rallentato, rendendolo più piacevole alla vista.
+
+\paragraph{Punto 1e.}
+Il Toon shading viene applicato solo all'oggetto \textit{Bunny}.\\
+Ho creato il vertex shader \texttt{Shaders/v\_toon.glsl} e il fragment shader \texttt{Shaders/\allowbreak f\_toon.glsl}. %Questo prende in input i vertici e le normali (nelle variabili \texttt{vPosition} e \texttt{vNormal}). Dall'applicazione gli vengono passati (nelle funzioni \texttt{initShader()} e \texttt{drawScene()}) i valori delle variabili \texttt{time}, \texttt{P}, \texttt{V}, \texttt{M}, \texttt{light} e \texttt{material}. In output viene restituita la variabile \texttt{Color}.\\
+
+\paragraph{Punto 2.}
+\paragraph{Punto 3.}
 
 
 %\begin{thebibliography}{90}
