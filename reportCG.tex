@@ -88,15 +88,22 @@ Per una resa migliore del movimento ondoso, ho  aumentato il valore in input all
 
 \paragraph{Punto 1e.}
 Il Toon shading viene applicato solo all'oggetto \textit{Bunny}.\\
-Ho creato il vertex shader \texttt{Shaders/v\_toon.glsl} e il fragment shader \texttt{Shaders/\allowbreak f\_toon.glsl}. %Questo prende in input i vertici e le normali (nelle variabili \texttt{vPosition} e \texttt{vNormal}). Dall'applicazione gli vengono passati (nelle funzioni \texttt{initShader()} e \texttt{drawScene()}) i valori delle variabili \texttt{time}, \texttt{P}, \texttt{V}, \texttt{M}, \texttt{light} e \texttt{material}. In output viene restituita la variabile \texttt{Color}.\\
+Ho creato il vertex shader \texttt{Shaders/v\_toon.glsl} e il fragment shader \texttt{Shaders/\allowbreak f\_toon.glsl}. Il primo prende in input i vertici e le normali (nelle variabili \texttt{vPosition} e \texttt{vNormal}); dall'applicazione gli vengono passati (nelle funzioni \texttt{initShader()} e \texttt{drawScene()}) i valori delle variabili \texttt{P}, \texttt{V}, \texttt{M} e \texttt{light}; in output vengono restituite le variabili \texttt{N}, \texttt{L} ed \texttt{E}. Queste vengono prese in input dal fragment shader, che restituisce in output la variabile \texttt{FragColor}.\\
+Anche per il Toon shading vengono calcolate le normali ai vertici.\\
+Ho aggiunto la rispettiva voce nel sottomenù degli shading, per renderlo selezionabile.
 
 \paragraph{Punto 2.}
+Nelle funzioni \texttt{moveCameraLeft()} e \texttt{moveCameraRight()}, per realizzare la funzionalità \textit{Pan oriz. camera (sx/dx)}, ho calcolato il vettore direzione $\vec{A} - \vec{C}$ (nella variabile \texttt{direction}) tra la posizione della camera ($\vec{C}$) e del punto di riferimento in scena ($\vec{A}$). Ho poi calcolato, nella variabile \texttt{slide\_vector}, il prodotto vettoriale tra il suddetto vettore direzione e l'Up Vector della camera. Tale vettore, che definisce lo spostamento da compiere, viene sottratto, in \texttt{moveCameraLeft()}, e rispettivamente sommato, in \texttt{moveCameraRight()}, ai vettori $\vec{A}$ e $\vec{C}$.
+
 \paragraph{Punto 3.}
+Nella funzione \texttt{modifyModelMatrix()} applico le trasformazioni di traslazione, rotazione e scalatura degli oggetti in scena. L'oggetto e il sistema di riferimento rispetto al quale operare (WCS o OCS), sono quelli che in quel momento sono selezionati. Le trasformazioni vengono applicate alla matrice (la variabile \texttt{M}) dell'oggetto (contenuto nella variabile \texttt{objects}).
 
 
 %\begin{thebibliography}{90}
-%...
+%\bibitem{K1} \url{https://github.com/danielepolidori/LabComputerGraphics}\\
+%- repository GitHub di questo lavoro.
 %\end{thebibliography}
 
 
-\end{document}          
+\end{document}
+ 

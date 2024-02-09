@@ -1050,7 +1050,7 @@ void moveCameraBack()
 /// Pan oriz. camera (punto 2)
 void moveCameraLeft()
 {
-	glm::vec3 direction = ViewSetup.target - ViewSetup.position;
+	glm::vec3 direction = ViewSetup.target - ViewSetup.position;   /// Posizione del punto di riferimento in scena (A)  -  Posizione della camera (C)
 	glm::vec3 slide_vector = glm::cross(direction, glm::vec3(ViewSetup.upVector)) * CAMERA_TRASLATION_SPEED;
 
 	ViewSetup.position -= glm::vec4(slide_vector, 0.0);
@@ -1060,7 +1060,7 @@ void moveCameraLeft()
 /// Pan oriz. camera (punto 2)
 void moveCameraRight()
 {
-	glm::vec3 direction = ViewSetup.target - ViewSetup.position;
+	glm::vec3 direction = ViewSetup.target - ViewSetup.position;   /// Posizione del punto di riferimento in scena (A)  -  Posizione della camera (C)
 	glm::vec3 slide_vector = glm::cross(direction, glm::vec3(ViewSetup.upVector)) * CAMERA_TRASLATION_SPEED;
 
 	ViewSetup.position += glm::vec4(slide_vector, 0.0);
