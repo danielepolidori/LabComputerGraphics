@@ -72,31 +72,31 @@ Infine, ho utilizzato questo oggetto per segnalare visivamente un'azione negativ
 
 \paragraph{Punto 1a.}
 La scelta dello shading da applicare in scena è riferito solo all'oggetto \textit{Bunny} (\texttt{Mesh/bunny.obj}).\\
-Nella funzione \texttt{buildOpenGLMenu()}, ho creato un sottomenù, nel menu principale del programma, per consentire la modifica dello shading. Quando viene selezionato uno shading differente, viene invocata la funzione \texttt{init\_mesh()}, che sostituisce il vecchio oggetto (memorizzato nella variabile \texttt{objects}) con uno nuovo. Questo, se la scelta è diversa dal Flat shading, conterrà le normali ai vertici (anziché quelle alle facce), mentre per il resto rimarrà identico.\\
+Nel menu principale del programma, ho creato un sottomenu (nella funzione \texttt{buildOpenGLMenu()}) per consentire la modifica dello shading. Quando viene selezionato uno shading differente, viene invocata la funzione \texttt{init\_mesh()}, che sostituisce il vecchio oggetto (memorizzato nella variabile \texttt{objects}) con uno nuovo. Questo, se la scelta è diversa dal Flat shading, conterrà le normali ai vertici (anziché quelle alle facce), mentre per il resto rimarrà identico.\\
 Il calcolo delle normali ai vertici $\overrightarrow{Nv}$, viene eseguito nella funzione \texttt{loadObjFile()}. Cerco, per ciascun vertice \textit{i}, le \textit{n} facce che lo condividono, quindi applico la formula per il calcolo della normale al vertice:
 \[ \overrightarrow{Nv_i} = \frac{\sum_{k=1}^n \overrightarrow{Nf_{i,k}}}{n} \]
 con $\overrightarrow{Nf_{i,k}}$ la normale alla k-esima faccia condivisa dal vertice \textit{i}.\\
 Nella variabile \texttt{vertexIndices} vengono memorizzati gli indici dei vertici (decrementati di 1), ordinati seguendo le dichiarazioni delle facce nel file (con estensione \texttt{.obj}) del rispettivo oggetto. Dal momento che le normali ai vertici vengono calcolate e memorizzate seguendo i vertici in ordine crescente, l'indice di ciascuna di esse corrisponde a quello del rispettivo vertice (già decrementato di 1). La variabile \texttt{normalIndices} viene quindi riempita con i valori presenti in \texttt{vertexIndices}.
 
 \paragraph{Punto 1b.}
-Ho definito i valori di un nuovo materiale, che ho chiamato \textit{My Material}. Poi, nella funzione \texttt{init()}, l'ho aggiunto nella variabile \texttt{materials}. Infine, ho aggiunto la rispettiva voce nel sottomenù dei materiali, per renderlo selezionabile.
+Ho definito i valori di un nuovo materiale, che ho chiamato \textit{My Material}. Poi, nella funzione \texttt{init()}, l'ho aggiunto nella variabile \texttt{materials}. Infine, ho aggiunto la rispettiva voce nel sottomenu dei materiali, per renderlo selezionabile.
 
 \paragraph{Punto 1d.}
-Ho creato il vertex shader \texttt{Shaders/v\_wave.glsl}, per l'oggetto \textit{Wave}. Questo prende in input i vertici e le normali (nelle variabili \texttt{vPosition} e \texttt{vNormal}). Dall'applicazione gli vengono passati (nelle funzioni \texttt{initShader()} e \texttt{drawScene()}) i valori delle variabili \texttt{time}, \texttt{P}, \texttt{V}, \texttt{M}, \texttt{light} e \texttt{material}. In output viene restituita la variabile \texttt{Color}.\\
-L'illuminazione viene gestita all'interno del vertex shader. Il fragment shader che gli ho associato (nella funzione \texttt{initShader()}) è quello relativo al Gouraud shading (\texttt{Shaders/\allowbreak f\_gouraud.glsl}), che semplicemente prende in input \texttt{Color} e lo restituisce come \texttt{FragColor}.\\
+Ho creato il vertex shader \texttt{Shaders/v\_wave.glsl}, per l'oggetto \textit{Wave}. Lo shader prende in input i vertici e le normali (nelle variabili \texttt{vPosition} e \texttt{vNormal}). Dall'applicazione gli vengono passati (nelle funzioni \texttt{initShader()} e \texttt{drawScene()}) i valori delle variabili \texttt{time}, \texttt{P}, \texttt{V}, \texttt{M}, \texttt{light} e \texttt{material}. In output viene restituita la variabile \texttt{Color}.\\
+L'illuminazione viene gestita all'interno del vertex shader. Il fragment shader che gli ho associato (nella funzione \texttt{initShader()}) è quello relativo al Gouraud shading (\texttt{Shaders/\allowbreak f\_gouraud.glsl}), che ha l'unica funzione di prendere in input \texttt{Color} e restituirlo come \texttt{FragColor}.\\
 Per una resa migliore del movimento ondoso, ho  aumentato il valore in input alla funzione \texttt{refresh\_monitor()}, nella funzione \texttt{main()}: in questo modo il moto viene rallentato, rendendolo più piacevole alla vista.
 
 \paragraph{Punto 1e.}
 Il Toon shading viene applicato solo all'oggetto \textit{Bunny}.\\
 Ho creato il vertex shader \texttt{Shaders/v\_toon.glsl} e il fragment shader \texttt{Shaders/\allowbreak f\_toon.glsl}. Il primo prende in input i vertici e le normali (nelle variabili \texttt{vPosition} e \texttt{vNormal}); dall'applicazione gli vengono passati (nelle funzioni \texttt{initShader()} e \texttt{drawScene()}) i valori delle variabili \texttt{P}, \texttt{V}, \texttt{M} e \texttt{light}; in output vengono restituite le variabili \texttt{N}, \texttt{L} ed \texttt{E}. Queste vengono prese in input dal fragment shader, che restituisce in output la variabile \texttt{FragColor}.\\
 Anche per il Toon shading vengono calcolate le normali ai vertici.\\
-Ho aggiunto la rispettiva voce nel sottomenù degli shading, per renderlo selezionabile.
+Ho aggiunto la rispettiva voce nel sottomenu degli shading, per renderlo selezionabile.
 
 \paragraph{Punto 2.}
 Nelle funzioni \texttt{moveCameraLeft()} e \texttt{moveCameraRight()}, per realizzare la funzionalità \textit{Pan oriz. camera (sx/dx)}, ho calcolato il vettore direzione $\vec{A} - \vec{C}$ (nella variabile \texttt{direction}) tra la posizione della camera ($\vec{C}$) e del punto di riferimento in scena ($\vec{A}$). Ho poi calcolato, nella variabile \texttt{slide\_vector}, il prodotto vettoriale tra il suddetto vettore direzione e l'Up Vector della camera. Tale vettore, che definisce lo spostamento da compiere, viene sottratto, in \texttt{moveCameraLeft()}, e rispettivamente sommato, in \texttt{moveCameraRight()}, ai vettori $\vec{A}$ e $\vec{C}$.
 
 \paragraph{Punto 3.}
-Nella funzione \texttt{modifyModelMatrix()} applico le trasformazioni di traslazione, rotazione e scalatura degli oggetti in scena. L'oggetto e il sistema di riferimento rispetto al quale operare (WCS o OCS), sono quelli che in quel momento sono selezionati. Le trasformazioni vengono applicate alla matrice (la variabile \texttt{M}) dell'oggetto (contenuto nella variabile \texttt{objects}).
+Nella funzione \texttt{modifyModelMatrix()} applico le trasformazioni di traslazione, rotazione e scalatura degli oggetti in scena. L'oggetto e il sistema di riferimento, rispetto al quale operare (WCS o OCS), sono quelli che in quel momento sono selezionati. Le trasformazioni vengono applicate alla matrice (la variabile \texttt{M}) dell'oggetto (contenuto nella variabile \texttt{objects}).
 
 
 %\begin{thebibliography}{90}
