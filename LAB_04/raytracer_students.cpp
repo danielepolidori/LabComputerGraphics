@@ -69,6 +69,7 @@ RayTracer::CastRay (Ray & ray, Hit & h, bool use_sphere_patches) const
 Vec3f
 RayTracer::TraceRay (Ray & ray, Hit & hit, int bounce_count) const
 {
+cout << "ciao baby\n";
 
   hit = Hit ();
   bool intersect = CastRay (ray, hit, false);
@@ -118,24 +119,40 @@ RayTracer::TraceRay (Ray & ray, Hit & hit, int bounce_count) const
 	  // ASSIGNMENT:  ADD SHADOW LOGIC
 	  // ==========================================
 	  Face *f = mesh->getLights ()[i];
-	  Vec3f pointOnLight = f->computeCentroid ();
-	  Vec3f dirToLight = pointOnLight - point;
+	  Vec3f pointOnLight = f->computeCentroid ();	/// Punto luce
+	  Vec3f dirToLight = pointOnLight - point;	/// Direzione dal punto d'intersezione con l'oggetto al punto luce
 	  dirToLight.Normalize ();
 
       // creare shadow ray verso il punto luce
-	  
+		Ray r = Ray(point, dirToLight);   /// Il raggio viene costruito passando l'origine e la direzione
+		Hit h = Hit();
+		bool colpito = false;
+		colpito = CastRay(r, h, false); // PROVARE CON TRUE
+
 	  // controllare il primo oggetto colpito da tale raggio
 
 	  // se e' la sorgente luminosa i-esima allora
 	  //	calcolare e aggiungere ad answer il contributo luminoso
 	  // altrimenti
 	  //    la luce i non contribuisce alla luminosita' di point.
+cout << "ops\n";
+		Vec3f point_tmp = r.pointAtParameter(h.getT());
+		if (colpito && point_tmp==pointOnLight) {   /// Se lo shadow ray colpisce la sorgente luminosa // COSI UGUAGLIANZA VETTORI ???
 
-	  if (normal.Dot3 (dirToLight) > 0)
-	  {
-		Vec3f lightColor = 0.2 * f->getMaterial ()->getEmittedColor () * f->getArea ();
-		answer += m->Shade (ray, hit, dirToLight, lightColor, args);
-	  }
+///			answer += ///
+///		}
+
+cout << "yes\n";
+
+
+
+
+			  if (normal.Dot3 (dirToLight) > 0)
+			  {
+				Vec3f lightColor = 0.2 * f->getMaterial ()->getEmittedColor () * f->getArea ();
+				answer += m->Shade (ray, hit, dirToLight, lightColor, args);
+			  }
+		}
 	}
     
   }
