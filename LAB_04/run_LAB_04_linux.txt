@@ -1,0 +1,5 @@
+(SCRITTO DA ME)
+
+Per eseguire in linux l'eseguibile dell'esercitazione il comando e' questo (trovandosi all'interno della directory con l'eseguibile):
+
+./LAB_04  -size 200 200 -input Objects/cornell_box_reflective_spheres.obj -background_color 0.2 0.1 0.6 -num_bounces 3
