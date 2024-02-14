@@ -102,13 +102,21 @@ RayTracer::TraceRay (Ray & ray, Hit & hit, int bounce_count) const
 	// ==========================================
 	
 	// se (il punto sulla superficie e' riflettente & bounce_count>0)
-    
 	//     calcolare ReflectionRay  R=2<n,l>n -l
-
     //	   invocare TraceRay(ReflectionRay, hit,bounce_count-1)
-	
 	//     aggiungere ad answer il contributo riflesso
-	
+	if(bounce_count > 0) {
+
+		Vec3f n = hit.getNormal();
+		Vec3f dirReflection = 2 * (n * point) * n - point;
+
+		Ray rReflection = Ray(point, dirReflection);
+		Hit hReflection; /// OPPURE BASTA USARE 'hit' ?
+
+		answer += reflectiveColor;
+		answer += TraceRay(rReflection, hReflection, bounce_count-1);
+	}	
+
 	// ----------------------------------------------
 	// add each light
 	int num_lights = mesh->getLights ().size ();
