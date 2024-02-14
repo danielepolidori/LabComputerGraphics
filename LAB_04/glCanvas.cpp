@@ -394,10 +394,8 @@ GLCanvas::TraceRay (float i, float j)
 
   Ray r = camera->generateRay (Vec2f (x, y));
   Hit hit;
-printf("uaglio\n"); /// PROVA
   Vec3f color = raytracer->TraceRay (r, hit, args->num_bounces);
-///color = {1.0, 0.0, 0.0}; /// PROVA
-  //RayTree::SetMainSegment (r, 0, hit.getT ());
+  RayTree::SetMainSegment(r, 0, hit.getT());
   return color;
 }
 

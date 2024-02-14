@@ -69,7 +69,6 @@ RayTracer::CastRay (Ray & ray, Hit & h, bool use_sphere_patches) const
 Vec3f
 RayTracer::TraceRay (Ray & ray, Hit & hit, int bounce_count) const
 {
-cout << "ciao baby\n";
 
   hit = Hit ();
   bool intersect = CastRay (ray, hit, false);
@@ -124,10 +123,11 @@ cout << "ciao baby\n";
 	  dirToLight.Normalize ();
 
       // creare shadow ray verso il punto luce
-		Ray r = Ray(point, dirToLight);   /// Il raggio viene costruito passando l'origine e la direzione
-		Hit h = Hit();
-		bool colpito = false;
-		colpito = CastRay(r, h, false); // PROVARE CON TRUE
+		Ray rShadow = Ray(point, dirToLight);   /// Il raggio viene costruito passando l'origine e la direzione
+		Hit hShadow = Hit();			/// Cio' che viene colpito dal raggio shadow (dal punto iniziale alla luce)
+		bool colpitoShadow = false;
+		colpitoShadow = CastRay(rShadow, hShadow, false);
+		RayTree::AddShadowSegment(rShadow, 0, hShadow.getT());   /// Il raggio shadow viene mostrato in verde con 't'
 
 	  // controllare il primo oggetto colpito da tale raggio
 
@@ -135,17 +135,8 @@ cout << "ciao baby\n";
 	  //	calcolare e aggiungere ad answer il contributo luminoso
 	  // altrimenti
 	  //    la luce i non contribuisce alla luminosita' di point.
-cout << "ops\n";
-		Vec3f point_tmp = r.pointAtParameter(h.getT());
-		if (colpito && point_tmp==pointOnLight) {   /// Se lo shadow ray colpisce la sorgente luminosa // COSI UGUAGLIANZA VETTORI ???
-
-///			answer += ///
-///		}
-
-cout << "yes\n";
-
-
-
+		Vec3f puntoColpitoShadow = rShadow.pointAtParameter(hShadow.getT());   /// Punto colpito dallo shadow ray
+		if (colpitoShadow && puntoColpitoShadow==pointOnLight) {   /// Se lo shadow ray colpisce la sorgente luminosa in considerazione
 
 			  if (normal.Dot3 (dirToLight) > 0)
 			  {
