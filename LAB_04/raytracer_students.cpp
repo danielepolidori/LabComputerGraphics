@@ -70,6 +70,7 @@ Vec3f
 RayTracer::TraceRay (Ray & ray, Hit & hit, int bounce_count) const
 {
 
+printf("\nBC: %i\n", bounce_count);
   hit = Hit ();
   bool intersect = CastRay (ray, hit, false);
 
@@ -81,6 +82,7 @@ RayTracer::TraceRay (Ray & ray, Hit & hit, int bounce_count) const
   Vec3f answer = args->background_color;
 
   Material *m = hit.getMaterial ();
+printf("inters: %i\n", intersect);
   if (intersect == true)
   {
 
@@ -97,6 +99,15 @@ RayTracer::TraceRay (Ray & ray, Hit & hit, int bounce_count) const
 	// if the surface is shiny...
 	Vec3f reflectiveColor = m->getReflectiveColor ();
 
+cout << "reflColor: " << reflectiveColor;
+	if(reflectiveColor.r() > 0 ||
+	   reflectiveColor.g() > 0 ||
+	   reflectiveColor.b() > 0) {   /// Se la superficie e' riflettente
+
+		answer += reflectiveColor;
+		///answer = answer * reflectiveColor;
+	}
+
 	// ==========================================
 	// ASSIGNMENT:  ADD REFLECTIVE LOGIC
 	// ==========================================
@@ -105,16 +116,25 @@ RayTracer::TraceRay (Ray & ray, Hit & hit, int bounce_count) const
 	//     calcolare ReflectionRay  R=2<n,l>n -l
     //	   invocare TraceRay(ReflectionRay, hit,bounce_count-1)
 	//     aggiungere ad answer il contributo riflesso
-	if(bounce_count > 0) {
+	if((reflectiveColor.r() > 0 ||
+	    reflectiveColor.g() > 0 ||
+	    reflectiveColor.b() > 0) &&
+	    bounce_count > 0) {
 
+printf("is_refl\n");
 		Vec3f n = hit.getNormal();
-		Vec3f dirReflection = 2 * (n * point) * n - point;
+		///Vec3f dirReflection = 2 * (n * point) * n - point;
+		///Vec3f dirReflection = point - 2 * (n * point) * n;   /// v opposite
+		float prodModNV = n.Length() * point.Length();
+		Vec3f dirReflection = point - 2 * ((n * point) /= prodModNV) * n;   /// v opposite
+		///dirReflection.Normalize();
 
 		Ray rReflection = Ray(point, dirReflection);
 		Hit hReflection; /// OPPURE BASTA USARE 'hit' ?
 
-		answer += reflectiveColor;
+		///answer += reflectiveColor;
 		answer += TraceRay(rReflection, hReflection, bounce_count-1);
+		///answer += TraceRay(rReflection, hit, bounce_count-1);
 	}	
 
 	// ----------------------------------------------
