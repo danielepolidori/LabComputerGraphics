@@ -122,12 +122,20 @@ cout << "reflColor: " << reflectiveColor;
 	    bounce_count > 0) {
 
 printf("is_refl\n");
-		Vec3f n = hit.getNormal();
-		///Vec3f dirReflection = 2 * (n * point) * n - point;
-		///Vec3f dirReflection = point - 2 * (n * point) * n;   /// v opposite
-		float prodModNV = n.Length() * point.Length();
-		Vec3f dirReflection = point - 2 * ((n * point) /= prodModNV) * n;   /// v opposite
-		///dirReflection.Normalize();
+		/***
+		 *   v --> point
+		 *   n --> normal
+		 * r_v --> dirReflection
+		 ***/
+
+		Vec3f v = point;
+		v.Normalize();
+
+		float prodottoScalareNV = normal.Dot3(v);   /// Prodotto scalare n*v
+
+		///Vec3f dirReflection = v - 2 * prodottoScalareNV * normal;   /// v opposite
+		Vec3f dirReflection = 2 * prodottoScalareNV * normal - v;
+		dirReflection.Normalize();   /// Garantisce che il vettore abbia una lunghezza unitaria
 
 		Ray rReflection = Ray(point, dirReflection);
 		Hit hReflection; /// OPPURE BASTA USARE 'hit' ?
