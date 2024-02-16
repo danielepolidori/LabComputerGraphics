@@ -123,18 +123,20 @@ cout << "reflColor: " << reflectiveColor;
 
 printf("is_refl\n");
 		/***
-		 *   v --> point
-		 *   n --> normal
-		 * r_v --> dirReflection
+		 *   v --> direzione di `ray`
+		 *   n --> `normal`
+		 * r_v --> `dirReflection`
 		 ***/
 
-		Vec3f v = point;
+		///RayTree::AddShadowSegment(Ray(point, normal), 0, 50); /// PER VISUALIZZARE LA NORMALE AL PUNTO
+
+		Vec3f v = ray.getDirection();
 		v.Normalize();
 
 		float prodottoScalareNV = normal.Dot3(v);   /// Prodotto scalare n*v
 
-		///Vec3f dirReflection = v - 2 * prodottoScalareNV * normal;   /// v opposite
-		Vec3f dirReflection = 2 * prodottoScalareNV * normal - v;
+		Vec3f dirReflection = v - 2 * prodottoScalareNV * normal;   /// v opposite
+		///Vec3f dirReflection = 2 * prodottoScalareNV * normal - v;
 		dirReflection.Normalize();   /// Garantisce che il vettore abbia una lunghezza unitaria
 
 		Ray rReflection = Ray(point, dirReflection);
