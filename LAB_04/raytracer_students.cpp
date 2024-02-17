@@ -98,25 +98,7 @@ printf("inters: %i\n", intersect);
 	// ----------------------------------------------
 	// if the surface is shiny...
 	Vec3f reflectiveColor = m->getReflectiveColor ();
-
 cout << "reflColor: " << reflectiveColor;
-
-	if(reflectiveColor.r() > 0 &&
-	   reflectiveColor.g() == 0 &&
-	   reflectiveColor.b() == 0) {   /// Se la superficie e' riflettente*/
-/*	if(reflectiveColor.r() > 0 ||
-	   reflectiveColor.g() > 0 ||
-	   reflectiveColor.b() > 0) {   /// Se la superficie e' riflettente*/
-/*	if((reflectiveColor.r() > 0 ||
-	   reflectiveColor.g() > 0 ||
-	   reflectiveColor.b() > 0) &&   /// Se la superficie e' riflettente
-	   bounce_count == args->num_bounces) {
-	   ///bounce_count < args->num_bounces) {
-*/
-///		answer += reflectiveColor;
-		///answer += 0.5f * reflectiveColor;
-		///answer = answer * reflectiveColor;
-	}
 
 	// ==========================================
 	// ASSIGNMENT:  ADD REFLECTIVE LOGIC
@@ -128,7 +110,7 @@ cout << "reflColor: " << reflectiveColor;
 	//     aggiungere ad answer il contributo riflesso
 	if((reflectiveColor.r() > 0 ||
 	    reflectiveColor.g() > 0 ||
-	    reflectiveColor.b() > 0) &&
+	    reflectiveColor.b() > 0) &&   /// Se la superficie e' riflettente
 	    bounce_count > 0) {
 
 printf("is_refl\n");
@@ -146,22 +128,29 @@ printf("is_refl\n");
 		float prodottoScalareNV = normal.Dot3(v);   /// Prodotto scalare n*v
 
 		Vec3f dirReflection = v - 2 * prodottoScalareNV * normal;   /// v opposite
-		///Vec3f dirReflection = 2 * prodottoScalareNV * normal - v;
 		dirReflection.Normalize();   /// Garantisce che il vettore abbia una lunghezza unitaria
 
 		Ray rReflection = Ray(point, dirReflection);
-		Hit hReflection; /// OPPURE BASTA USARE 'hit' ?
+		Hit hReflection;
 
 		Vec3f contributoRiflesso = TraceRay(rReflection, hReflection, bounce_count-1);
 cout << "contrib_TraceRay: " << contributoRiflesso;
-		///answer += contributoRiflesso;
-		///answer += 0.2f * contributoRiflesso;
-		answer += 0.2f*contributoRiflesso + 0.8f*reflectiveColor;
 
-		///answer += reflectiveColor;
-///		answer += TraceRay(rReflection, hReflection, bounce_count-1);
-		///answer += TraceRay(rReflection, hit, bounce_count-1);
-		///answer += reflectiveColor;
+
+		/// Seleziono il contributo da applicare, in base alla palla colpita (se rossa o bianca)
+		if(reflectiveColor.r() > 0 &&
+	  	   reflectiveColor.g() == 0 &&
+	  	   reflectiveColor.b() == 0) {   	/// Se e' stata colpita la superficie riflettente della pallina ROSSA
+
+			float mediaContributoRiflesso = (contributoRiflesso.r() + contributoRiflesso.g() + contributoRiflesso.b()) / 3;   /// Alta per colori chiari, bassa per colori scuri
+			answer += mediaContributoRiflesso * reflectiveColor;   /// Se la superficie riflessa e' chiara allora il rosso e' acceso, se e' scura allora il rosso e' scuro
+		}
+		else if(reflectiveColor.r() > 0 &&
+		 	reflectiveColor.g() > 0 &&
+		 	reflectiveColor.b() > 0) {	/// Se e' stata colpita la superficie riflettente della palla BIANCA
+
+			answer += contributoRiflesso + 0.1f * reflectiveColor;   /// Considero quasi solamente il colore del riflesso
+		}
 	}	
 
 	// ----------------------------------------------
@@ -191,14 +180,14 @@ cout << "contrib_TraceRay: " << contributoRiflesso;
 	  // altrimenti
 	  //    la luce i non contribuisce alla luminosita' di point.
 		Vec3f puntoColpitoShadow = rShadow.pointAtParameter(hShadow.getT());   /// Punto colpito dallo shadow ray
-///		if (colpitoShadow && puntoColpitoShadow==pointOnLight) {   /// Se lo shadow ray colpisce la sorgente luminosa in considerazione
+		if (colpitoShadow && puntoColpitoShadow==pointOnLight) {   /// Se lo shadow ray colpisce la sorgente luminosa in considerazione
 
 			  if (normal.Dot3 (dirToLight) > 0)
 			  {
 				Vec3f lightColor = 0.2 * f->getMaterial ()->getEmittedColor () * f->getArea ();
 				answer += m->Shade (ray, hit, dirToLight, lightColor, args);
 			  }
-///		}
+		}
 	}
     
   }
