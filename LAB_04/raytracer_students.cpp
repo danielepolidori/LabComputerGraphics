@@ -100,11 +100,21 @@ printf("inters: %i\n", intersect);
 	Vec3f reflectiveColor = m->getReflectiveColor ();
 
 cout << "reflColor: " << reflectiveColor;
-	if(reflectiveColor.r() > 0 ||
-	   reflectiveColor.g() > 0 ||
-	   reflectiveColor.b() > 0) {   /// Se la superficie e' riflettente
 
-		answer += reflectiveColor;
+	if(reflectiveColor.r() > 0 &&
+	   reflectiveColor.g() == 0 &&
+	   reflectiveColor.b() == 0) {   /// Se la superficie e' riflettente*/
+/*	if(reflectiveColor.r() > 0 ||
+	   reflectiveColor.g() > 0 ||
+	   reflectiveColor.b() > 0) {   /// Se la superficie e' riflettente*/
+/*	if((reflectiveColor.r() > 0 ||
+	   reflectiveColor.g() > 0 ||
+	   reflectiveColor.b() > 0) &&   /// Se la superficie e' riflettente
+	   bounce_count == args->num_bounces) {
+	   ///bounce_count < args->num_bounces) {
+*/
+///		answer += reflectiveColor;
+		///answer += 0.5f * reflectiveColor;
 		///answer = answer * reflectiveColor;
 	}
 
@@ -142,9 +152,16 @@ printf("is_refl\n");
 		Ray rReflection = Ray(point, dirReflection);
 		Hit hReflection; /// OPPURE BASTA USARE 'hit' ?
 
+		Vec3f contributoRiflesso = TraceRay(rReflection, hReflection, bounce_count-1);
+cout << "contrib_TraceRay: " << contributoRiflesso;
+		///answer += contributoRiflesso;
+		///answer += 0.2f * contributoRiflesso;
+		answer += 0.2f*contributoRiflesso + 0.8f*reflectiveColor;
+
 		///answer += reflectiveColor;
-		answer += TraceRay(rReflection, hReflection, bounce_count-1);
+///		answer += TraceRay(rReflection, hReflection, bounce_count-1);
 		///answer += TraceRay(rReflection, hit, bounce_count-1);
+		///answer += reflectiveColor;
 	}	
 
 	// ----------------------------------------------
@@ -174,14 +191,14 @@ printf("is_refl\n");
 	  // altrimenti
 	  //    la luce i non contribuisce alla luminosita' di point.
 		Vec3f puntoColpitoShadow = rShadow.pointAtParameter(hShadow.getT());   /// Punto colpito dallo shadow ray
-		if (colpitoShadow && puntoColpitoShadow==pointOnLight) {   /// Se lo shadow ray colpisce la sorgente luminosa in considerazione
+///		if (colpitoShadow && puntoColpitoShadow==pointOnLight) {   /// Se lo shadow ray colpisce la sorgente luminosa in considerazione
 
 			  if (normal.Dot3 (dirToLight) > 0)
 			  {
 				Vec3f lightColor = 0.2 * f->getMaterial ()->getEmittedColor () * f->getArea ();
 				answer += m->Shade (ray, hit, dirToLight, lightColor, args);
 			  }
-		}
+///		}
 	}
     
   }
