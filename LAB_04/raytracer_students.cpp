@@ -8,6 +8,8 @@
 #include "face.h"
 #include "sphere.h"
 
+#include <cmath>   /// Per togliere i puntini neri delle shadow
+
 // casts a single ray through the scene geometry and finds the closest hit
 bool
 RayTracer::CastRay (Ray & ray, Hit & h, bool use_sphere_patches) const
@@ -137,19 +139,23 @@ printf("is_refl\n");
 cout << "contrib_TraceRay: " << contributoRiflesso;
 
 
-		/// Seleziono il contributo da applicare, in base alla palla colpita (se rossa o bianca)
+		/// Seleziono il contributo da applicare, in base alla sfera colpita (se rossa o bianca)
 		if(reflectiveColor.r() > 0 &&
 	  	   reflectiveColor.g() == 0 &&
-	  	   reflectiveColor.b() == 0) {   	/// Se e' stata colpita la superficie riflettente della pallina ROSSA
+	  	   reflectiveColor.b() == 0) {   	/// Se e' stata colpita la superficie riflettente della sfera ROSSA
 
-			float mediaContributoRiflesso = (contributoRiflesso.r() + contributoRiflesso.g() + contributoRiflesso.b()) / 3;   /// Alta per colori chiari, bassa per colori scuri
-			answer += mediaContributoRiflesso * reflectiveColor;   /// Se la superficie riflessa e' chiara allora il rosso e' acceso, se e' scura allora il rosso e' scuro
+			/// La media e' alta per colori chiari, bassa per colori scuri
+			float mediaContributoRiflesso = (contributoRiflesso.r() + contributoRiflesso.g() + contributoRiflesso.b()) / 3;
+
+			/// In questo modo, se la superficie riflessa e' chiara allora il rosso e' acceso, se e' scura allora il rosso e' scuro
+			answer += mediaContributoRiflesso * reflectiveColor;
 		}
 		else if(reflectiveColor.r() > 0 &&
 		 	reflectiveColor.g() > 0 &&
-		 	reflectiveColor.b() > 0) {	/// Se e' stata colpita la superficie riflettente della palla BIANCA
+		 	reflectiveColor.b() > 0) {	/// Se e' stata colpita la superficie riflettente della sfera BIANCA
 
-			answer += contributoRiflesso + 0.1f * reflectiveColor;   /// Considero quasi solamente il colore del riflesso
+			/// Considero solamente il colore del riflesso (senza la componente bianca della sfera, i.e. reflectiveColor)
+			answer += contributoRiflesso;
 		}
 	}	
 
@@ -179,8 +185,17 @@ cout << "contrib_TraceRay: " << contributoRiflesso;
 	  //	calcolare e aggiungere ad answer il contributo luminoso
 	  // altrimenti
 	  //    la luce i non contribuisce alla luminosita' di point.
+
 		Vec3f puntoColpitoShadow = rShadow.pointAtParameter(hShadow.getT());   /// Punto colpito dallo shadow ray
-		if (colpitoShadow && puntoColpitoShadow==pointOnLight) {   /// Se lo shadow ray colpisce la sorgente luminosa in considerazione
+
+		float intorno = 1.0e-05;
+		if (colpitoShadow &&
+			puntoColpitoShadow.x() < pointOnLight.x() + intorno &&
+			puntoColpitoShadow.x() > pointOnLight.x() - intorno &&
+			puntoColpitoShadow.y() < pointOnLight.y() + intorno &&
+			puntoColpitoShadow.y() > pointOnLight.y() - intorno &&
+			puntoColpitoShadow.z() < pointOnLight.z() + intorno &&
+			puntoColpitoShadow.z() > pointOnLight.z() - intorno) {   /// Se lo shadow ray colpisce la sorgente luminosa in considerazione
 
 			  if (normal.Dot3 (dirToLight) > 0)
 			  {
