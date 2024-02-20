@@ -161,50 +161,152 @@ cout << "contrib_TraceRay: " << contributoRiflesso;
 
 	// ----------------------------------------------
 	// add each light
-	int num_lights = mesh->getLights ().size ();
-	for (int i = 0; i < num_lights; i++)
-	{
-	  // ==========================================
-	  // ASSIGNMENT:  ADD SHADOW LOGIC
-	  // ==========================================
-	  Face *f = mesh->getLights ()[i];
-	  Vec3f pointOnLight = f->computeCentroid ();	/// Punto luce
-	  Vec3f dirToLight = pointOnLight - point;	/// Direzione dal punto d'intersezione con l'oggetto al punto luce
-	  dirToLight.Normalize ();
+	int num_lights = mesh->getLights().size();
 
-      // creare shadow ray verso il punto luce
-		Ray rShadow = Ray(point, dirToLight);   /// Il raggio viene costruito passando l'origine e la direzione
-		Hit hShadow = Hit();			/// Cio' che viene colpito dal raggio shadow (dal punto iniziale alla luce)
-		bool colpitoShadow = false;
-		colpitoShadow = CastRay(rShadow, hShadow, false);
-		RayTree::AddShadowSegment(rShadow, 0, hShadow.getT());   /// Il raggio shadow viene mostrato in verde con 't'
+	///if(! args->softShadow) {	/// Shadow (non soft)
 
-	  // controllare il primo oggetto colpito da tale raggio
+		for (int i = 0; i < num_lights; i++)
+		{
 
-	  // se e' la sorgente luminosa i-esima allora
-	  //	calcolare e aggiungere ad answer il contributo luminoso
-	  // altrimenti
-	  //    la luce i non contribuisce alla luminosita' di point.
+			
+			if(args->softShadow) {	/// Soft shadow
 
-		Vec3f puntoColpitoShadow = rShadow.pointAtParameter(hShadow.getT());   /// Punto colpito dallo shadow ray
+				Face *f = mesh->getLights()[i];
 
-		float intorno = 1.0e-05;
-		if (colpitoShadow &&
-			puntoColpitoShadow.x() < pointOnLight.x() + intorno &&
-			puntoColpitoShadow.x() > pointOnLight.x() - intorno &&
-			puntoColpitoShadow.y() < pointOnLight.y() + intorno &&
-			puntoColpitoShadow.y() > pointOnLight.y() - intorno &&
-			puntoColpitoShadow.z() < pointOnLight.z() + intorno &&
-			puntoColpitoShadow.z() > pointOnLight.z() - intorno) {   /// Se lo shadow ray colpisce la sorgente luminosa in considerazione
+				float gradoSoftShadow = 1.0;	/// Grado d'intensita' dell'ombra (in base al numero di raggi che colpiscono la luce da quel punto)
+				int numShadowRay2Light = 0;	/// Numero di raggi shadow che dal punto colpiscono la sorgente luminosa
 
-			  if (normal.Dot3 (dirToLight) > 0)
-			  {
-				Vec3f lightColor = 0.2 * f->getMaterial ()->getEmittedColor () * f->getArea ();
-				answer += m->Shade (ray, hit, dirToLight, lightColor, args);
-			  }
+				for(int j = 0; j < 4; j++) {   /// Scorro i vertici della sorgente luminosa
+
+
+					Vec3f pointOnLight = f->[j].get();   /// j-esimo vertice della sorgente luminosa
+					Vec3f dirToLight = pointOnLight - point;	/// Direzione dal punto d'intersezione con l'oggetto al punto luce
+					dirToLight.Normalize();
+
+					Ray rShadow = Ray(point, dirToLight);   /// Il raggio viene costruito passando l'origine e la direzione
+					Hit hShadow = Hit();			/// Cio' che viene colpito dal raggio shadow (dal punto iniziale alla luce)
+					bool colpitoShadow = false;
+					colpitoShadow = CastRay(rShadow, hShadow, false);
+					RayTree::AddShadowSegment(rShadow, 0, hShadow.getT());   /// Il raggio shadow viene mostrato in verde con 't'
+
+					Vec3f puntoColpitoShadow = rShadow.pointAtParameter(hShadow.getT());   /// Punto colpito dallo shadow ray
+					float intorno = 1.0e-05;
+					if (colpitoShadow &&
+						puntoColpitoShadow.x() < pointOnLight.x() + intorno &&
+						puntoColpitoShadow.x() > pointOnLight.x() - intorno &&
+						puntoColpitoShadow.y() < pointOnLight.y() + intorno &&
+						puntoColpitoShadow.y() > pointOnLight.y() - intorno &&
+						puntoColpitoShadow.z() < pointOnLight.z() + intorno &&
+						puntoColpitoShadow.z() > pointOnLight.z() - intorno) {   /// Se lo shadow ray colpisce la sorgente luminosa in considerazione
+
+						if (normal.Dot3(dirToLight) > 0) {
+
+							numShadowRay2Light++;
+						}
+					}
+				}
+
+				/***
+				 numShadowRay2Light --> gradoSoftShadow:
+
+				  4 --> 1
+				  3 --> 0.25 (0.15)
+				  2 --> 0.1
+				  1 --> 0.05
+				  0 --> 0
+				***/
+				if(numShadowRay2Light < 4) gradoSoftShadow = numShadowRay2Light * 0.05;
+
+
+				/// Calcolo il contributo della luce
+
+				Vec3f pointOnLight = f->computeCentroid ();	/// Punto luce
+				Vec3f dirToLight = pointOnLight - point;	/// Direzione dal punto d'intersezione con l'oggetto al punto luce
+		  		dirToLight.Normalize ();
+
+				if(normal.Dot3(dirToLight) > 0) {
+
+					Vec3f lightColor = 0.2 * f->getMaterial()->getEmittedColor() * f->getArea();
+					answer += gradoSoftShadow * m->Shade(ray, hit, dirToLight, lightColor, args);
+				}
+			}
+			else {
+
+		  // ==========================================
+		  // ASSIGNMENT:  ADD SHADOW LOGIC
+		  // ==========================================
+		  Face *f = mesh->getLights ()[i];
+		  Vec3f pointOnLight = f->computeCentroid ();	/// Punto luce
+		  Vec3f dirToLight = pointOnLight - point;	/// Direzione dal punto d'intersezione con l'oggetto al punto luce
+		  dirToLight.Normalize ();
+
+	      // creare shadow ray verso il punto luce
+			Ray rShadow = Ray(point, dirToLight);   /// Il raggio viene costruito passando l'origine e la direzione
+			Hit hShadow = Hit();			/// Cio' che viene colpito dal raggio shadow (dal punto iniziale alla luce)
+			bool colpitoShadow = false;
+			colpitoShadow = CastRay(rShadow, hShadow, false);
+			RayTree::AddShadowSegment(rShadow, 0, hShadow.getT());   /// Il raggio shadow viene mostrato in verde con 't'
+
+		  // controllare il primo oggetto colpito da tale raggio
+
+		  // se e' la sorgente luminosa i-esima allora
+		  //	calcolare e aggiungere ad answer il contributo luminoso
+		  // altrimenti
+		  //    la luce i non contribuisce alla luminosita' di point.
+
+			Vec3f puntoColpitoShadow = rShadow.pointAtParameter(hShadow.getT());   /// Punto colpito dallo shadow ray
+
+			float intorno = 1.0e-05;
+			if (colpitoShadow &&
+				puntoColpitoShadow.x() < pointOnLight.x() + intorno &&
+				puntoColpitoShadow.x() > pointOnLight.x() - intorno &&
+				puntoColpitoShadow.y() < pointOnLight.y() + intorno &&
+				puntoColpitoShadow.y() > pointOnLight.y() - intorno &&
+				puntoColpitoShadow.z() < pointOnLight.z() + intorno &&
+				puntoColpitoShadow.z() > pointOnLight.z() - intorno) {   /// Se lo shadow ray colpisce la sorgente luminosa in considerazione
+
+				  if (normal.Dot3 (dirToLight) > 0)
+				  {
+					Vec3f lightColor = 0.2 * f->getMaterial()->getEmittedColor() * f->getArea();
+					answer += m->Shade(ray, hit, dirToLight, lightColor, args);
+					///answer += gradoSoftShadow * m->Shade(ray, hit, dirToLight, lightColor, args);
+				  }
+			}
+		}} /// fine else non soft
+	/*}
+	else {				/// Soft shadow
+
+		for(int i = 0; i < num_lights; i++) {
+
+			Face *f = mesh->getLights()[i];
+			///Vec3f pointOnLight = f->computeCentroid ();	/// Punto luce
+			Vec3f dirToLight = pointOnLight - point;	/// Direzione dal punto d'intersezione con l'oggetto al punto luce
+			dirToLight.Normalize();
+
+			Ray rShadow = Ray(point, dirToLight);   /// Il raggio viene costruito passando l'origine e la direzione
+			Hit hShadow = Hit();			/// Cio' che viene colpito dal raggio shadow (dal punto iniziale alla luce)
+			bool colpitoShadow = false;
+			colpitoShadow = CastRay(rShadow, hShadow, false);
+			RayTree::AddShadowSegment(rShadow, 0, hShadow.getT());   /// Il raggio shadow viene mostrato in verde con 't'
+
+			Vec3f puntoColpitoShadow = rShadow.pointAtParameter(hShadow.getT());   /// Punto colpito dallo shadow ray
+			float intorno = 1.0e-05;
+			if (colpitoShadow &&
+				puntoColpitoShadow.x() < pointOnLight.x() + intorno &&
+				puntoColpitoShadow.x() > pointOnLight.x() - intorno &&
+				puntoColpitoShadow.y() < pointOnLight.y() + intorno &&
+				puntoColpitoShadow.y() > pointOnLight.y() - intorno &&
+				puntoColpitoShadow.z() < pointOnLight.z() + intorno &&
+				puntoColpitoShadow.z() > pointOnLight.z() - intorno) {   /// Se lo shadow ray colpisce la sorgente luminosa in considerazione
+
+				  if (normal.Dot3 (dirToLight) > 0)
+				  {
+					Vec3f lightColor = 0.2 * f->getMaterial()->getEmittedColor() * f->getArea();
+					answer += m->Shade(ray, hit, dirToLight, lightColor, args);
+				  }
+			}
 		}
-	}
-    
+	}*/
   }
 
   return answer;
