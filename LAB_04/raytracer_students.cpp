@@ -168,18 +168,18 @@ cout << "contrib_TraceRay: " << contributoRiflesso;
 		for (int i = 0; i < num_lights; i++)
 		{
 
-			
 			if(args->softShadow) {	/// Soft shadow
 
 				Face *f = mesh->getLights()[i];
 
-				float gradoSoftShadow = 1.0;	/// Grado d'intensita' dell'ombra (in base al numero di raggi che colpiscono la luce da quel punto)
+				int numShadowRay = 64;		/// Numero di raggi shadow che partono dal punto colpito
 				int numShadowRay2Light = 0;	/// Numero di raggi shadow che dal punto colpiscono la sorgente luminosa
+				float gradoSoftShadow = 1.0;	/// Grado d'intensita' dell'ombra (in base al numero di raggi che colpiscono la luce da quel punto)
 
-				for(int j = 0; j < 4; j++) {   /// Scorro i vertici della sorgente luminosa
+				/// Creazione shadow ray
+				for(int j = 0; j < numShadowRay; j++) {
 
-
-					Vec3f pointOnLight = f->[j].get();   /// j-esimo vertice della sorgente luminosa
+					Vec3f pointOnLight = f->RandomPoint();   	/// Punto casuale della (faccia della) sorgente luminosa
 					Vec3f dirToLight = pointOnLight - point;	/// Direzione dal punto d'intersezione con l'oggetto al punto luce
 					dirToLight.Normalize();
 
@@ -206,23 +206,19 @@ cout << "contrib_TraceRay: " << contributoRiflesso;
 					}
 				}
 
-				/***
-				 numShadowRay2Light --> gradoSoftShadow:
+				float incremento = 1.0 / numShadowRay;
+				if(numShadowRay2Light < numShadowRay) {   /// Se siamo in ombra (o penombra)
 
-				  4 --> 1
-				  3 --> 0.25 (0.15)
-				  2 --> 0.1
-				  1 --> 0.05
-				  0 --> 0
-				***/
-				if(numShadowRay2Light < 4) gradoSoftShadow = numShadowRay2Light * 0.05;
+					/// Piu' shadow ray arrivano alla luce, piu' quel punto sara' luminoso
+					gradoSoftShadow = numShadowRay2Light * incremento;
+				}
 
 
 				/// Calcolo il contributo della luce
 
-				Vec3f pointOnLight = f->computeCentroid ();	/// Punto luce
+				Vec3f pointOnLight = f->computeCentroid();	/// Punto luce
 				Vec3f dirToLight = pointOnLight - point;	/// Direzione dal punto d'intersezione con l'oggetto al punto luce
-		  		dirToLight.Normalize ();
+		  		dirToLight.Normalize();
 
 				if(normal.Dot3(dirToLight) > 0) {
 
@@ -269,7 +265,6 @@ cout << "contrib_TraceRay: " << contributoRiflesso;
 				  {
 					Vec3f lightColor = 0.2 * f->getMaterial()->getEmittedColor() * f->getArea();
 					answer += m->Shade(ray, hit, dirToLight, lightColor, args);
-					///answer += gradoSoftShadow * m->Shade(ray, hit, dirToLight, lightColor, args);
 				  }
 			}
 		}} /// fine else non soft
