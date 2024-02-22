@@ -395,7 +395,6 @@ GLCanvas::TraceRay (float i, float j)
   Ray r = camera->generateRay (Vec2f (x, y));
   Hit hit;
   Vec3f color = raytracer->TraceRay (r, hit, args->num_bounces);
-cout << "glC_TR: " << color;
   //RayTree::SetMainSegment(r, 0, hit.getT());
   return color;
 }
