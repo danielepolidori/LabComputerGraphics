@@ -56,7 +56,7 @@ Ho preso l'oggetto dell'alone del sole dal programma \texttt{2D\_Jumping\allowbr
 All'inizio della partita, nella funzione \texttt{drawScene()}, creo contemporaneamente dieci aloni nel cielo, in posizioni casuali. Successivamente vengono mostrati soltanto quelli che ancora non sono stati inglobati. Se il sole tocca un bordo dello schermo, vengono mostrati nuovamente tutti gli aloni.
 
 \paragraph{Sole.}
-Ho preso l'oggetto del sole (con il suo alone) dal programma \texttt{2D\allowbreak\_Jumping\_Ball.cpp} e l'ho collegato a \texttt{VAO\_SOLE}. Ne ho modificato la scala (modificando l'input della funzione \texttt{scale()}, nella funzione \texttt{drawScene()}), per renderlo leggermente più piccolo. Ne ho modificato anche il colore (cambiando il valore delle variabili \texttt{col\_top\_sole} e \texttt{col\_bottom\_sole}, nella funzione \texttt{disegna\_sole()}), rendendolo più chiaro.\\
+Ho preso l'oggetto del sole (con il suo alone) dal programma \texttt{ \allowbreak 2D\_Jumping\_Ball.cpp} e l'ho collegato a \texttt{VAO\_SOLE}. Ne ho modificato la scala (modificando l'input della funzione \texttt{scale()}, nella funzione \texttt{drawScene()}), per renderlo leggermente più piccolo. Ne ho modificato anche il colore (cambiando il valore delle variabili \texttt{col\_top\_sole} e \texttt{col\_bottom\_sole}, nella funzione \texttt{disegna\_sole()}), rendendolo più chiaro.\\
 Infine, ho agganciato il sole al movimento del mouse: ho sostituito l'input della funzione \texttt{translate()} con delle variabili che memorizzano la posizione attuale del mouse (il loro valore viene continuamente aggiornato attraverso la funzione callback di OpenGL \texttt{glutPassiveMotionFunc()}).\\
 Quando un alone viene inglobato, l'alone del sole viene ingrandito, per mostrare il progresso nella dinamica di gioco. Se il sole tocca un bordo dello schermo, l'alone del sole torna alla sua dimensione iniziale.\\
 In caso di vittoria, l'alone del sole viene ingrandito progressivamente (senza mai fermarsi). Per realizzare questo effetto ho usato cinquanta chiamate ricorsive alla funzione \texttt{aumentaScala\_aloneSole()}, attraverso la funzione \texttt{glutTimerFunc()}, ciascuna delle quali applica un piccolo incremento alla scala dell'alone del sole.
@@ -99,6 +99,17 @@ Nelle funzioni \texttt{moveCameraLeft()} e \texttt{moveCameraRight()}, per reali
 Nella funzione \texttt{modifyModelMatrix()} applico le trasformazioni di traslazione, rotazione e scalatura degli oggetti in scena. L'oggetto e il sistema di riferimento, rispetto al quale operare (WCS o OCS), sono quelli che in quel momento sono selezionati. Le trasformazioni vengono applicate alla matrice (la variabile \texttt{M}) dell'oggetto (contenuto nella variabile \texttt{objects}).
 
 
+\section{LAB-04}
+
+\paragraph{Punto 1.}
+Per generare le hard shadows creo, per mezzo della funzione \texttt{Ray()}, nella funzione \texttt{TraceRay()}, un raggio che parte dal punto d'intersezione \texttt{point} e va in direzione (\texttt{dirToLight}) della luce \texttt{pointOnLight}. Poi lancio tale raggio tramite la funzione \texttt{CastRay()}.\\
+Successivamente aggiungo il raggio al ray tree, attraverso la funzione \texttt{ \allowbreak AddShadowSegment()}, così da essere visualizzato durante la modalità di debug.\\
+Infine, controllo se l'oggetto colpito dal raggio è una sorgente luminosa: se è così, calcolo e aggiungo il suo contributo luminoso, altrimenti quella luce non contribuisce alla luminosità di quel punto. Per eseguire il controllo, dato il punto luce \texttt{pointOnLight} con coordinate $(x, y, z)$, verifico se le coordinate del punto colpito dallo shadow ray sono comprese, rispettivamente, negli intervalli $[x - 0.00001, x + 0.00001]$, $[y - 0.00001, y + 0.00001]$ e $[z - 0.00001, z + 0.00001]$.
+
+\paragraph{Punto 2.}
+\paragraph{Punto 3.}
+
+
 %\begin{thebibliography}{90}
 %\bibitem{K1} \url{https://github.com/danielepolidori/LabComputerGraphics}\\
 %- repository GitHub di questo lavoro.
@@ -106,4 +117,3 @@ Nella funzione \texttt{modifyModelMatrix()} applico le trasformazioni di traslaz
 
 
 \end{document}
- 
