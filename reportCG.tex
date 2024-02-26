@@ -29,7 +29,7 @@ Oltre ai VAO già in uso per la curva di base, ho creato una seconda coppia di V
 L'utente può scegliere la continuità con cui attaccare i tratti cubici alla curva di base: la continuità $C^0$ premendo il tasto \textit{0} (scelta di default), $C^1$ premendo il tasto \textit{1} e $G^1$ premendo il tasto \textit{g}. Tale continuità rimarrà selezionata finché non ne verrà scelta una differente.\\
 I tratti successivamente creati verranno raccordati con la continuità selezionata. Siano $p_0, \dots, p_n$ i punti della curva di base e $v_0, \dots, v_3$ i punti del tratto cubico, le continuità vengono applicate nella maniera seguente. $v_0$ viene eliminato, sarà infatti sostituito da $p_n$. A partire dalle coordinate di $p_{n-1}$ e $p_n$ vengono calcolate le coordinate che deve assumere il punto $v_1$, così che la continuità venga soddisfatta. Viene applicata la formula \eqref{eq:C1} per ottenere la continuità $C^1$ e la formula \eqref{eq:G1} per la continuità $G^1$: tali formule vengono applicate separatamente sulle coordinate $x$ e sulle $y$ dei rispettivi punti, con $\Delta = p_3 - p_2$. Per la continuità $G^1$, il punto verrà posizionato in modo tale che il tratto $v_1 - p_n$ sia lungo la metà del tratto $p_n - p_{n-1}$. Infine, i punti $v_1$, $v_2$ e $v_3$ vengono aggiunti alla curva di base, in qualità di, rispettivamente, $p_{n+1}$, $p_{n+2}$ e $p_{n+3}$.
 \begin{align}
-  v_1' &= p_n + \Delta = 2*p_n - p_{n-1}             \label{eq:C1} \\
+  v_1' &= p_n + \Delta = 2 \cdot p_n - p_{n-1}             \label{eq:C1} \\
   v_1' &= p_n + \frac{\Delta}{2} = p_n + \frac{p_n - p_{n-1}}{2}   \label{eq:G1}
 \end{align}
 
@@ -102,18 +102,37 @@ Nella funzione \texttt{modifyModelMatrix()} applico le trasformazioni di traslaz
 \section{LAB-04}
 
 \paragraph{Punto 1.}
-Per generare le hard shadows creo, per mezzo della funzione \texttt{Ray()}, nella funzione \texttt{TraceRay()}, un raggio che parte dal punto d'intersezione \texttt{point} e va in direzione (\texttt{dirToLight}) della luce \texttt{pointOnLight}. Poi lancio tale raggio tramite la funzione \texttt{CastRay()}.\\
-Successivamente aggiungo il raggio al ray tree, attraverso la funzione \texttt{ \allowbreak AddShadowSegment()}, così da essere visualizzato durante la modalità di debug.\\
-Infine, controllo se l'oggetto colpito dal raggio è una sorgente luminosa: se è così, calcolo e aggiungo il suo contributo luminoso, altrimenti quella luce non contribuisce alla luminosità di quel punto. Per eseguire il controllo, dato il punto luce \texttt{pointOnLight} con coordinate $(x, y, z)$, verifico se le coordinate del punto colpito dallo shadow ray sono comprese, rispettivamente, negli intervalli $[x - 0.00001, x + 0.00001]$, $[y - 0.00001, y + 0.00001]$ e $[z - 0.00001, z + 0.00001]$.
+Per generare le hard shadow, creo, per mezzo della funzione \texttt{Ray()}, nella funzione \texttt{TraceRay()}, un raggio che parte dal punto d'intersezione \texttt{point} e va in direzione (\texttt{dirToLight}) della luce \texttt{pointOnLight}. Lancio tale raggio tramite la funzione \texttt{CastRay()}.\\
+Successivamente aggiungo il raggio, come shadow ray, al ray tree, attraverso la funzione \texttt{AddShadowSegment()}, così da essere visualizzato durante la modalità di debug.\\
+Infine, controllo se l'oggetto colpito dal raggio è una sorgente luminosa: se è così, calcolo e aggiungo il suo contributo luminoso al colore di quel punto, altrimenti quella luce non contribuisce alla luminosità di questo. Per eseguire tale controllo, dato il punto luce \texttt{pointOnLight} con coordinate $(x, y, z)$, verifico se le coordinate del punto colpito dallo shadow ray sono comprese, rispettivamente, negli intervalli $[x - 0.00001, x + 0.00001]$, $[y - 0.00001, y + 0.00001]$ e $[z - 0.00001, z + 0.00001]$.
 
 \paragraph{Punto 2.}
+Per gestire i reflection ray, se la superficie colpita è riflettente, creo, nella funzione \texttt{TraceRay()}, per mezzo di una chiamata ricorsiva alla stessa, il raggio riflesso, che parte dal punto d'intersezione \texttt{point}.\\
+Quando invoco ricorsivamente \texttt{TraceRay()}, passo il valore della variabile \texttt{bounce\_count} decrementato di uno. Per verificare se la superficie colpita è riflettente, controllo se la variabile \texttt{reflectiveColor}, riferita all'oggetto, ha almeno un valore ($r$, $g$ o $b$) maggiore di zero. Siano $\vec{v}$ la direzione del raggio incidente e $\vec{n}$ la direzione normale alla superficie nel punto d'intersezione, per calcolare la direzione del raggio riflesso $\overrightarrow{r_v}$, utilizzo la formula:
+\[ \overrightarrow{r_v} = \vec{v} - 2 (\vec{n} \cdot \vec{v}) \vec{n} \]
+Infine, aggiungo il contributo riflesso al colore del punto d'intersezione, differenziando tra i due tipi di sfera. Se si tratta della sfera grande bianca, il contributo corrisponde al valore di ritorno della chiamata ricorsiva a \texttt{TraceRay()} (i.e. riflette esattamente il colore dell'ambiente esterno). Se si tratta della sfera piccola rossa, invece, corrisponde al prodotto della media dei valori $r$, $g$ e $b$ (quindi nell'intervallo $[0, 1]$) di tale contributo per la variabile \texttt{reflectiveColor}: in questo modo, a un valore $rgb$ basso, e rispettivamente alto, dell'ambiente esterno corrisponde un valore basso, e rispettivamente alto, del colore rosso della sfera (i.e. \texttt{reflectiveColor}).
+
 \paragraph{Punto 3.}
+Per gestire le soft shadow, nella funzione \texttt{TraceRay()}, dal punto d'intersezione \texttt{point}, lancio 128 raggi (shadow ray) verso punti casuali della risorsa luminosa area light e conto quanti di questi la raggiungono.\\
+Se tutti i raggi raggiungono la luce, allora il punto avrà il pieno contributo di tale luce al suo colore.\\
+Invece, se non tutti i raggi arrivano alla luce, vengono gestiti due casi: quello di ombra e quello di penombra. Se il numero di raggi è inferiore o pari a 15, il contributo della luce in quel punto è nullo: ci troviamo in una situazione di ombra piena. Se, invece, è superiore a 15 (ma almeno un raggio non arriva alla luce), si ha un contributo graduale in base al numero di raggi: più shadow ray arrivano alla luce, più quel punto sarà luminoso. Essendo il numero di raggi in questione, per esprimere la situazione di penombra, corrispondente a 113 ($= 128-15$), il contributo previsto per ognuno di questi raggi è pari a $0.009$ ($= 1/113$): tale contributo viene applicato per ciascun raggio, dal sedicesimo in poi, che arriva alla luce. Quindi, in questo caso, il contributo della luce in quel punto sarà pari al prodotto del numero di shadow ray che arrivano alla luce, decrementato di 15, per il singolo contributo.\\
+Ricapitolando, sia $n$ il numero di shadow ray che arrivano alla luce, il contributo di questa in quel punto, nei tre casi di ombra, penombra e luce piena, corrisponde a:
+\[
+  \begin{cases}
+    0                     & \text{se $n \leq 15$}     \\
+    (n - 15) \cdot 0.009  & \text{se $15 < n < 128$}  \\
+    1                     & \text{se $n = 128$}
+  \end{cases}
+\]
+Sono giunto a ideare questa strategia seguendo alcuni passi.\\
+Inizialmente, ho lanciato 4 raggi dal punto d'intersezione: uno verso ciascuno dei quattro vertici della faccia della luce. Il risultato però era scadente, dal momento che l'ombra appariva divisa in fasce sovrapposte facilmente distinguibili. Aumentando il numero di raggi, l'ombra veniva resa in maniera più uniforme, ma comunque risultava divisa in fasce.\\
+Invece, lanciando i raggi in punti casuali della luce, l'ombra risultava uniforme, con un effetto più realistico di gradualità verso la luce. Infatti, in questo modo, a punti adiacenti nell'ombra non corrispondeva più necessariamente lo stesso livello d'intensità. Lanciando pochi raggi, però, l'ombra risultava puntiforme e quindi ancora poco realistica. Infine, aumentando il numero di raggi a 128, ho ottenuto un effetto di ombra diffusa, più attinente alla realtà.
 
 
-%\begin{thebibliography}{90}
-%\bibitem{K1} \url{https://github.com/danielepolidori/LabComputerGraphics}\\
-%- repository GitHub di questo lavoro.
-%\end{thebibliography}
+\begin{thebibliography}{90}
+\bibitem{K1} \url{https://github.com/danielepolidori/LabComputerGraphics}\\
+- repository GitHub di questo lavoro.
+\end{thebibliography}
 
 
 \end{document}

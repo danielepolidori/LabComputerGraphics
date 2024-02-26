@@ -2,4 +2,18 @@
 
 Per eseguire in linux l'eseguibile dell'esercitazione il comando e' questo (trovandosi all'interno della directory con l'eseguibile):
 
-./LAB_04  -size 200 200 -input Objects/cornell_box_reflective_spheres.obj -background_color 0.2 0.1 0.6 -num_bounces 3
+> ./LAB_04  -size 200 200 -input Objects/cornell_box_reflective_spheres.obj -background_color 0.2 0.1 0.6 -num_bounces 3
+
+
+
+***
+
+
+
+AGGIORNAMENTO.
+
+Compilare:
+> g++ *.cpp -o LAB_04 -lGL -lGLU -lGLEW -lglut
+
+Eseguire:
+> ./LAB_04  -size 500 500 -input Objects/reflective_spheres.obj -background_color 0.2 0.1 0.6 -num_bounces 3
